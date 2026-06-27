@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CDK Reference — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link active">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Reference › CDK Reference</div>
+          <h1>CDK Reference</h1>
+          <p class="lead">Complete reference for the Rialo Rust crates — <code>rialo-cdk</code>, <code>rialo-venus-dsl</code>, <code>rialo-sol-lang</code>, and supporting libraries.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#crates">Crate overview</a></li>
+            <li><a href="#rialo-cdk">rialo-cdk</a></li>
+            <li><a href="#venus-dsl-crate">rialo-venus-dsl</a></li>
+            <li><a href="#sol-lang">rialo-sol-lang</a></li>
+            <li><a href="#s-sdk">rialo-s-sdk (client)</a></li>
+            <li><a href="#modules">Module reference</a></li>
+            <li><a href="#cargo-toml">Cargo.toml templates</a></li>
+          </ul>
+        </div>
+
+        <!-- Crate Overview -->
+        <h2 id="crates">Crate overview</h2>
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead>
+              <tr><th>Crate</th><th>Version</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>rialo-cdk</code></td>
+                <td><span class="badge badge-green">0.9.x</span></td>
+                <td>Primary on-chain program library. Targets both native (tokio async) and <code>wasm32</code>.</td>
+              </tr>
+              <tr>
+                <td><code>rialo-venus-dsl</code></td>
+                <td><span class="badge badge-green">0.9.x</span></td>
+                <td>Async workflow DSL — <code>rialo!</code> macro, AFTER / EVERY / ON / SEND / START.</td>
+              </tr>
+              <tr>
+                <td><code>rialo-sol-lang</code></td>
+                <td><span class="badge badge-green">0.9.x</span></td>
+                <td>Solana Sealevel eDSL (Anchor-compatible). For porting or writing SVM-layer programs.</td>
+              </tr>
+              <tr>
+                <td><code>rialo-s-program</code></td>
+                <td><span class="badge badge-green">0.9.x</span></td>
+                <td>Low-level on-chain program crate (Solana program layer). Use when you need direct SVM access.</td>
+              </tr>
+              <tr>
+                <td><code>rialo-s-sdk</code></td>
+                <td><span class="badge badge-green">0.9.x</span></td>
+                <td>Client-side Rust SDK. Use this to interact with deployed programs from off-chain code.</td>
+              </tr>
+              <tr>
+                <td><code>rialo-s-feature-set</code></td>
+                <td><span class="badge badge-green">0.9.x</span></td>
+                <td>Feature flags and capability detection for the Rialo runtime.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- rialo-cdk -->
+        <h2 id="rialo-cdk">rialo-cdk</h2>
+        <p>The primary library for building on-chain programs. It re-exports everything you need and provides the core abstractions: context, token operations, events, accounts, and native primitives.</p>
+
+        <h3>Prelude</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+// Brings into scope: Context, Pubkey, Result, require!, emit!,
+// Clock, token, https, price_feed, messaging, random, schedule</code></pre>
+        </div>
+
+        <h3>Core types</h3>
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Type</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>Context</code></td><td>Transaction context — <code>ctx.signer</code>, <code>ctx.accounts</code>, <code>ctx.auth_token</code></td></tr>
+              <tr><td><code>Pubkey</code></td><td>32-byte on-chain address</td></tr>
+              <tr><td><code>Result&lt;T&gt;</code></td><td>Rialo result type, maps to <code>ProgramResult</code></td></tr>
+              <tr><td><code>Duration</code></td><td>Time span — <code>Duration::seconds(n)</code>, <code>Duration::days(n)</code></td></tr>
+              <tr><td><code>Clock</code></td><td>On-chain clock — <code>Clock::get().unix_timestamp</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Macros</h3>
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Macro</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>require!(cond, err)</code></td><td>Assert condition or return error. Equivalent to <code>if !cond { return Err(err) }</code></td></tr>
+              <tr><td><code>emit!(event)</code></td><td>Emit a typed on-chain event from a struct decorated with <code>#[event]</code></td></tr>
+              <tr><td><code>msg!(fmt, ...)</code></td><td>Log a message to the transaction log (debug use)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>token module</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">// Native token transfer
+token::transfer(from: Pubkey, to: Pubkey, amount: u64) -> Result<()>
+
+// Stable token transfer (USDC / protocol stablecoin)
+token::transfer_stable(to: Pubkey, amount: u64) -> Result<()>
+
+// Get token balance
+token::balance(account: Pubkey) -> Result<u64>
+
+// Mint new tokens (requires mint authority)
+token::mint(to: Pubkey, amount: u64) -> Result<()>
+
+// Burn tokens
+token::burn(from: Pubkey, amount: u64) -> Result<()></code></pre>
+        </div>
+
+        <h3>https module</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">// GET request — returns HttpResponse
+https::get(url: impl Into<String>) -> Result<HttpResponse>
+
+// POST request with JSON body
+https::post(url: impl Into<String>, body: &impl Serialize) -> Result<HttpResponse>
+
+// HttpResponse methods
+response.status()          -> u16
+response.text()            -> String
+response.json::<T>()       -> Result<T>   // deserializes into type T
+response.headers()         -> HashMap<String, String></code></pre>
+        </div>
+
+        <h3>price_feed module</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">// Latest price (u64, scaled by 10^6)
+price_feed::get(pair: &str) -> Result<u64>
+
+// Price with confidence interval
+price_feed::get_with_confidence(pair: &str) -> Result<PriceWithConfidence>
+// PriceWithConfidence { price: u64, confidence: u64, expo: i32 }
+
+// Time-weighted average price
+price_feed::twap(pair: &str, window: Duration) -> Result<u64>
+
+// Event trigger conditions (used with ON keyword)
+price_feed::below(pair: &str, threshold: u64) -> EventCondition
+price_feed::above(pair: &str, threshold: u64) -> EventCondition
+price_feed::change(pair: &str, pct_bps: i64)  -> EventCondition</code></pre>
+        </div>
+
+        <h3>random module</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">// Random u64 in [min, max)
+random::range(min: u64, max: u64) -> u64
+
+// Random bytes
+random::bytes(len: usize) -> Vec<u8>
+
+// Random bool with probability p (0..=100)
+random::bool_with_prob(p: u8) -> bool</code></pre>
+        </div>
+
+        <h3>messaging module</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">// Send to wallet (IBE-encrypted, delivered to device)
+messaging::send(recipient: Pubkey, message: &str) -> Result<()>
+
+// Send to email address (no wallet needed)
+messaging::send_email(email: &str, message: &str) -> Result<()>
+
+// Send to phone number
+messaging::send_sms(phone: &str, message: &str) -> Result<()>
+
+// Send push notification (requires device token from social login)
+messaging::send_push(device_id: &str, message: &str) -> Result<()></code></pre>
+        </div>
+
+        <!-- Venus DSL Crate -->
+        <h2 id="venus-dsl-crate">rialo-venus-dsl</h2>
+        <p>Provides the <code>rialo!</code> proc-macro and the Venus async DSL keywords. See the <a href="venus-dsl.html" class="inline-link">Venus DSL reference</a> for full usage documentation.</p>
+
+        <h3>Macro entry point</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_venus_dsl::rialo;
+
+rialo! {
+    state { /* fields */ }
+    program { /* functions + async ops */ }
+}</code></pre>
+        </div>
+
+        <h3>Async operation syntax</h3>
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Keyword</th><th>Syntax</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>AFTER</code></td><td><code>AFTER &lt;duration&gt; =&gt; fn()</code></td><td>Run once after delay</td></tr>
+              <tr><td><code>EVERY</code></td><td><code>EVERY &lt;duration&gt; =&gt; fn()</code></td><td>Run repeatedly on interval</td></tr>
+              <tr><td><code>ON</code></td><td><code>ON &lt;condition&gt; =&gt; fn()</code></td><td>Run when event/condition fires</td></tr>
+              <tr><td><code>SEND</code></td><td><code>SEND fn(args)</code></td><td>Non-blocking async message</td></tr>
+              <tr><td><code>START</code></td><td><code>START WorkflowName { fields }</code></td><td>Spawn new workflow instance</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- rialo-sol-lang -->
+        <h2 id="sol-lang">rialo-sol-lang</h2>
+        <p>An Anchor-compatible eDSL for writing Solana Sealevel programs on Rialo. If you're familiar with Anchor, this will feel identical — it's a drop-in replacement that targets the Rialo SVM layer.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_sol_lang::prelude::*;
+
+#[program]
+pub mod my_program {
+    use super::*;
+
+    pub fn initialize(ctx: Context<Initialize>, data: u64) -> Result<()> {
+        ctx.accounts.my_account.data = data;
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
+pub struct Initialize<'info> {
+    #[account(init, payer = user, space = 8 + 8)]
+    pub my_account: Account<'info, MyAccount>,
+    #[account(mut)]
+    pub user: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[account]
+pub struct MyAccount {
+    pub data: u64,
+}</code></pre>
+        </div>
+
+        <!-- rialo-s-sdk -->
+        <h2 id="s-sdk">rialo-s-sdk (client)</h2>
+        <p>Use <code>rialo-s-sdk</code> to interact with deployed programs from client-side Rust code (off-chain, native async).</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-toml"># Client binary Cargo.toml
+[dependencies]
+rialo-s-sdk = "0.9"
+tokio = { version = "1", features = ["full"] }</code></pre>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_s_sdk::{
+    client::RpcClient,
+    signature::{Keypair, Signer},
+    transaction::Transaction,
+};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    let client = RpcClient::new("https://testnet.rialo.io");
+    let payer  = Keypair::read_from_file("~/.config/rialo/id.json")?;
+
+    // Call a program instruction
+    let ix = my_program::instruction::increment(
+        &my_program::ID,
+        &payer.pubkey(),
+    );
+
+    let tx = Transaction::new_signed_with_payer(
+        &[ix],
+        Some(&payer.pubkey()),
+        &[&payer],
+        client.get_latest_blockhash().await?,
+    );
+
+    let sig = client.send_and_confirm_transaction(&tx).await?;
+    println!("Transaction: {}", sig);
+    Ok(())
+}</code></pre>
+        </div>
+
+        <!-- Cargo.toml templates -->
+        <h2 id="cargo-toml">Cargo.toml templates</h2>
+
+        <h3>On-chain program (Venus DSL)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-toml">[package]
+name    = "my-program"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+rialo-cdk       = "0.9"
+rialo-venus-dsl = "0.9"
+borsh           = "1"
+serde           = { version = "1", features = ["derive"] }
+
+[profile.release]
+overflow-checks = true
+lto             = "fat"
+codegen-units   = 1</code></pre>
+        </div>
+
+        <h3>On-chain program (Anchor-compatible)</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-toml">[package]
+name    = "my-anchor-program"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+rialo-sol-lang  = "0.9"
+rialo-s-program = "0.9"
+
+[features]
+no-entrypoint = []
+cpi           = ["no-entrypoint"]
+idl-build     = ["rialo-sol-lang/idl-build"]</code></pre>
+        </div>
+
+        <h3>Client application</h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-toml">[package]
+name    = "my-client"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rialo-s-sdk = "0.9"
+tokio       = { version = "1", features = ["full"] }
+anyhow      = "1"
+serde       = { version = "1", features = ["derive"] }
+serde_json  = "1"</code></pre>
+        </div>
+
+        <div class="page-nav">
+          <a href="privacy-security.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Privacy &amp; Security</div>
+          </a>
+          <a href="faq.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">FAQ</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

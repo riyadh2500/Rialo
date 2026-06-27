@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Contract Development — Rialo Doc</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body data-base="../">
+<div id="topnav-mount"></div>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <main class="content">
+    <div class="content-inner">
+
+      <div class="page-header">
+        <div class="breadcrumb"><a href="../index.html">Docs</a><span>/</span>Smart Contract Development</div>
+        <h1><span class="grad-text">Smart Contract Development</span></h1>
+        <p class="lead">Everything you need to build production-grade on-chain programs — the Venus DSL in depth, workflow patterns, security, testing, and the REX runtime.</p>
+      </div>
+
+      <div class="toc">
+        <div class="toc-title">On this page</div>
+        <ul>
+          <li><a href="#venus">Venus DSL deep-dive</a></li>
+          <li><a href="#state">Workflow state</a></li>
+          <li><a href="#async-ops">Async operations</a></li>
+          <li><a href="#events">Events</a></li>
+          <li><a href="#errors">Error handling</a></li>
+          <li><a href="#security">Security patterns</a></li>
+          <li><a href="#testing">Testing</a></li>
+          <li><a href="#rex">REX runtime</a></li>
+          <li><a href="#solana-compat">Solana compatibility</a></li>
+        </ul>
+      </div>
+
+      <h2 id="venus">Venus DSL deep-dive</h2>
+      <p>The <code>rialo!</code> macro is Rialo's embedded DSL for writing <strong>workflow programs</strong> — on-chain programs that can pause, react to events, and resume without off-chain infrastructure. It compiles to SVM-compatible instructions.</p>
+
+      <p>Every Venus program has two sections:</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">rialo! {
+    // 1. Persistent state — survives across all async operations
+    state {
+        field: Type,
+        // ...
+    }
+
+    // 2. Program logic — functions + async operations
+    program {
+        fn my_function(ctx: Context) { ... }
+        EVERY 1h => recurring_task();
+        AFTER 7d  => one_shot_task();
+        ON price_feed::below("BTC/USD", 50_000) => on_crash();
+        SEND other_fn(args);
+        START SubWorkflow { fields };
+    }
+}</code></pre>
+      </div>
+
+      <h2 id="state">Workflow state</h2>
+      <p>State declared in the <code>state { }</code> block is <strong>persistent</strong> — it lives on-chain and survives across transactions, timers, and events. The Venus compiler handles account allocation, serialization, and rent exemption automatically.</p>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-body">
+          <div class="callout-title">No account management</div>
+          <p>Unlike Solana's raw account model, you never size accounts, derive PDAs, or manage rent manually. Declare your fields, and the runtime handles the rest.</p>
+        </div>
+      </div>
+
+      <p>Supported state field types:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>u8, u16, u32, u64, u128</code></td><td>Unsigned integers</td></tr>
+            <tr><td><code>i8, i16, i32, i64, i128</code></td><td>Signed integers</td></tr>
+            <tr><td><code>bool</code></td><td>Boolean</td></tr>
+            <tr><td><code>Pubkey</code></td><td>32-byte on-chain address</td></tr>
+            <tr><td><code>String</code></td><td>UTF-8 string, dynamically sized</td></tr>
+            <tr><td><code>Vec&lt;T&gt;</code></td><td>Dynamic array of any serializable type</td></tr>
+            <tr><td><code>Option&lt;T&gt;</code></td><td>Optional value</td></tr>
+            <tr><td><code>ScopedWallet</code></td><td>SCALE agent wallet (from <code>rialo_cdk::scale</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="async-ops">Async operations</h2>
+      <p>Venus adds five async keywords to your program block:</p>
+
+      <h3>AFTER — one-shot delay</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// Run once, 30 days from now
+AFTER 30d => release_funds();
+
+// Duration units: s, m, h, d
+AFTER 3600s => task();   // 1 hour
+AFTER 12h   => task();   // 12 hours</code></pre></div>
+
+      <h3>EVERY — recurring timer</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// Run repeatedly forever (until explicitly cancelled)
+EVERY 1h  => hourly_check();
+EVERY 30d => monthly_billing();</code></pre></div>
+
+      <h3>ON — event trigger</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// React to price feed
+ON price_feed::below("ETH/USD", 2_000) => margin_call();
+ON price_feed::above("BTC/USD", 100_000) => take_profit();
+
+// React to another program's event
+ON other_program::SettlementComplete => process(event.amount);
+
+// React to an HTTPS response matching a condition
+ON https::poll("https://api.example/status").json_eq("status", "ready")
+    => handle_ready();</code></pre></div>
+
+      <h3>SEND — non-blocking async message</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// Non-blocking — execution continues immediately
+SEND notify_user(user_pubkey);
+SEND execute_trade(amount);</code></pre></div>
+
+      <h3>START — spawn workflow instance</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// Each call spawns a fresh, isolated workflow instance
+START EscrowWorkflow {
+    buyer,
+    seller,
+    amount,
+    deadline,
+};</code></pre></div>
+
+      <h2 id="events">Events</h2>
+      <p>Events are typed structs decorated with <code>#[event]</code>. They are committed on-chain and can be listened to by other programs using <code>ON</code>.</p>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">#[event]
+pub struct OrderFilled {
+    pub order_id: u64,
+    pub amount:   u64,
+    pub price:    u64,
+    pub buyer:    Pubkey,
+    pub seller:   Pubkey,
+}
+
+// Emit from a function
+emit!(OrderFilled {
+    order_id: state.order_id,
+    amount, price, buyer, seller,
+});</code></pre></div>
+
+      <h2 id="errors">Error handling</h2>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">#[error_code]
+pub enum MyError {
+    #[msg("You are not authorized")]
+    Unauthorized,
+    #[msg("Insufficient balance — need {} lamports")]
+    InsufficientFunds,
+    #[msg("Deadline has passed")]
+    DeadlinePassed,
+}
+
+// Use require! as a guard
+fn withdraw(ctx: Context, amount: u64) {
+    require!(ctx.signer == state.owner, MyError::Unauthorized);
+    require!(state.balance >= amount, MyError::InsufficientFunds);
+    require!(
+        Clock::get().unix_timestamp < state.deadline,
+        MyError::DeadlinePassed
+    );
+    // ...
+}</code></pre></div>
+
+      <h2 id="security">Security patterns</h2>
+
+      <h3>Access control</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// Always validate the signer for privileged operations
+require!(ctx.signer == state.owner, Error::Unauthorized);
+
+// Multi-sig via threshold MPC
+#[require_multisig(threshold = 2, signers = state.admins)]
+fn admin_action(ctx: Context) { ... }</code></pre></div>
+
+      <h3>Re-entrancy prevention</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">// Checks-effects-interactions pattern
+fn withdraw(ctx: Context, amount: u64) {
+    // 1. Checks
+    require!(state.balance >= amount, Error::InsufficientFunds);
+    // 2. Effects — update state BEFORE external call
+    state.balance -= amount;
+    // 3. Interaction — external call last
+    token::transfer(ctx.accounts.vault, ctx.signer, amount).unwrap();
+}</code></pre></div>
+
+      <h3>Integer overflow</h3>
+      <div class="code-block"><div class="code-header"><span class="code-lang">toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-toml"># Cargo.toml — always enable overflow checks
+[profile.release]
+overflow-checks = true</code></pre></div>
+
+      <h2 id="testing">Testing</h2>
+      <p>Rialo programs can be unit-tested in pure Rust and integration-tested against a local node:</p>
+      <div class="code-block"><div class="code-header"><span class="code-filename">tests/integration.rs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-rust">use rialo_cdk::testing::*;
+
+#[tokio::test]
+async fn test_counter_increment() {
+    // Spin up an in-process local validator
+    let mut ctx = TestContext::new().await;
+
+    // Deploy the program
+    let program_id = ctx.deploy("../target/deploy/counter.so").await;
+
+    // Create a test keypair
+    let user = ctx.new_keypair();
+    ctx.airdrop(user.pubkey(), 2_000_000_000).await;
+
+    // Call initialize
+    ctx.call(program_id, "initialize", &user, &[]).await.unwrap();
+
+    // Call increment 3 times
+    for _ in 0..3 {
+        ctx.call(program_id, "increment", &user, &[]).await.unwrap();
+    }
+
+    // Read and assert state
+    let state = ctx.get_state::<CounterState>(program_id).await;
+    assert_eq!(state.count, 3);
+}</code></pre></div>
+
+      <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-bash">cargo test                           # unit tests
+rialo test --url localhost           # integration tests vs local node</code></pre></div>
+
+      <h2 id="rex">REX runtime</h2>
+      <p>The <strong>Rialo Extended Execution Runtime (REX)</strong> is built on RISC-V. Key properties:</p>
+      <ul>
+        <li><strong>ZK-friendly</strong> — RISC-V's simple ISA enables zero-knowledge proofs of execution</li>
+        <li><strong>TEE integration</strong> — programs can opt into confidential execution via the <code>#[confidential]</code> attribute</li>
+        <li><strong>Native randomness</strong> — generated in the enclave, verifiably unbiasable</li>
+        <li><strong>Stable gas</strong> — execution costs are deterministic and don't fluctuate with network load</li>
+        <li><strong>SVM compatible</strong> — the SVM layer runs on top of REX, so Solana programs work natively</li>
+      </ul>
+
+      <h2 id="solana-compat">Solana / Anchor compatibility</h2>
+      <p>If you have an existing Anchor project, swap the dependency:</p>
+      <div class="code-block"><div class="code-header"><span class="code-filename">Cargo.toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><code class="language-toml"># Before (Anchor)
+anchor-lang = "0.30"
+
+# After (Rialo — drop-in replacement)
+rialo-sol-lang  = "0.9"
+rialo-s-program = "0.9"</code></pre></div>
+
+      <div class="callout callout-tip">
+        <div class="callout-icon">✅</div>
+        <div class="callout-body">
+          <div class="callout-title">What you gain</div>
+          <p>After porting, your program immediately has access to native HTTPS calls, price feeds, timers, messaging, and randomness — without adding any other dependencies.</p>
+        </div>
+      </div>
+
+      <div class="page-nav">
+        <a href="tutorials.html" class="page-nav-item">
+          <div class="page-nav-label">← Previous</div>
+          <div class="page-nav-title">Tutorials</div>
+        </a>
+        <a href="faq.html" class="page-nav-item next">
+          <div class="page-nav-label">Next →</div>
+          <div class="page-nav-title">FAQ</div>
+        </a>
+      </div>
+
+      <footer class="doc-footer">
+        <div class="footer-inner">
+          <div class="footer-links"><a href="https://www.rialo.io" target="_blank">rialo.io</a><a href="faq.html">FAQ</a></div>
+          <span class="footer-copy">© 2026 Subzero Labs</span>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script src="../assets/js/prism.js"></script>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

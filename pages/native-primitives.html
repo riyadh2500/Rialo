@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Native Primitives — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link active">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Core Concepts › Native Primitives</div>
+          <h1>Native Primitives</h1>
+          <p class="lead">HTTPS on-chain, real-time price feeds, native randomness, and timers — built into the protocol, not bolted on.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#https">HTTPS on-chain</a></li>
+            <li><a href="#price-feeds">Price feeds</a></li>
+            <li><a href="#randomness">Randomness</a></li>
+            <li><a href="#timers">Timers</a></li>
+            <li><a href="#cross-chain">Cross-chain data</a></li>
+            <li><a href="#messaging">Messaging</a></li>
+          </ul>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">ℹ️</div>
+          <div class="callout-body">
+            <div class="callout-title">The middleware problem</div>
+            <p>Every capability on this page replaces a category of external service that developers on other chains must source, integrate, pay for separately, and monitor. On Rialo, they are protocol-level primitives with stable, predictable costs and no additional trust assumptions.</p>
+          </div>
+        </div>
+
+        <h2 id="https">HTTPS on-chain</h2>
+        <p>Rialo programs can make <strong>secure HTTPS requests directly from on-chain code</strong>, verified via Trusted Execution Environments (TEEs). No third-party oracle or off-chain relay is required. The request is issued by the Rialo node, the response is verified in the TEE enclave, and the result is committed to the chain as part of the transaction.</p>
+
+        <p>This enables smart contracts to read from any public API — weather data, sports scores, stock prices, credit scores, shipping status — without an intermediary.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        last_weather_code: u32,
+        city: String,
+    }
+
+    program {
+        // Fetch weather data every 6 hours — no oracle needed
+        EVERY 6h => refresh_weather();
+
+        fn refresh_weather() {
+            let resp = https::get(
+                format!("https://api.weather.example/v1/current?city={}", state.city)
+            ).expect("HTTPS call failed");
+
+            let data: WeatherResponse = resp.json();
+            state.last_weather_code = data.condition_code;
+
+            if data.condition_code == SEVERE_WEATHER {
+                emit!(SevereWeatherAlert { city: state.city.clone() });
+            }
+        }
+    }
+}
+
+#[derive(Deserialize)]
+struct WeatherResponse {
+    condition_code: u32,
+    temperature_c: f64,
+}</code></pre>
+        </div>
+
+        <h3>How TEE verification works</h3>
+        <p>When a program issues an <code>https::get()</code> call:</p>
+        <ol>
+          <li>The Rialo node issues the request from within a TEE enclave (e.g. Intel TDX or AMD SEV-SNP)</li>
+          <li>The TLS session is established inside the enclave — no node operator can see or modify the response</li>
+          <li>The enclave produces a cryptographic attestation that proves: (a) the correct URL was fetched, (b) the response was not tampered with</li>
+          <li>The attestation is verified by the rest of the network before the state change is committed</li>
+        </ol>
+
+        <div class="callout callout-warning">
+          <div class="callout-icon">⚠️</div>
+          <div class="callout-body">
+            <div class="callout-title">Determinism requirement</div>
+            <p>Because all nodes in the network must agree on state, HTTPS calls must return <strong>deterministic, cacheable responses</strong> within a given block. Rialo's runtime enforces response caching within a block window — the same URL called multiple times in one block returns the same result.</p>
+          </div>
+        </div>
+
+        <h2 id="price-feeds">Price feeds</h2>
+        <p>Rialo has <strong>native on-chain price feeds</strong> with stable costs. Unlike external oracle services (Chainlink, Pyth), price data is sourced and aggregated at the protocol level — no third party to trust, no per-request fee, no latency from a separate network.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+
+fn check_collateral_ratio(ctx: Context) -> Result<()> {
+    // Get latest price — synchronous, no async call needed
+    let btc_price = price_feed::get("BTC/USD")?;
+    let eth_price = price_feed::get("ETH/USD")?;
+
+    // Prices include confidence intervals for risk calculations
+    let btc = price_feed::get_with_confidence("BTC/USD")?;
+    msg!("BTC price: {} ± {}", btc.price, btc.confidence);
+
+    // Historical price (TWAP over 1h)
+    let btc_twap = price_feed::twap("BTC/USD", Duration::hours(1))?;
+
+    Ok(())
+}</code></pre>
+        </div>
+
+        <h3>Available feed types</h3>
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Function</th><th>Description</th></tr></thead>
+            <tbody>
+              <tr><td><code>price_feed::get(pair)</code></td><td>Latest price for a trading pair</td></tr>
+              <tr><td><code>price_feed::get_with_confidence(pair)</code></td><td>Price + confidence interval</td></tr>
+              <tr><td><code>price_feed::twap(pair, duration)</code></td><td>Time-weighted average price</td></tr>
+              <tr><td><code>price_feed::below(pair, threshold)</code></td><td>Event trigger — fires when price drops below value</td></tr>
+              <tr><td><code>price_feed::above(pair, threshold)</code></td><td>Event trigger — fires when price rises above value</td></tr>
+              <tr><td><code>price_feed::change(pair, pct)</code></td><td>Event trigger — fires on percentage change</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="randomness">Randomness</h2>
+        <p>True on-chain randomness is a first-class primitive in Rialo's REX runtime. No VRF service, no commit-reveal scheme, no external dependency. The random seed is generated inside the TEE at execution time and is verifiably unpredictable and unbiasable.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+
+rialo! {
+    state {
+        participants: Vec<Pubkey>,
+        winner: Option<Pubkey>,
+    }
+
+    program {
+        fn enter(ctx: Context) {
+            state.participants.push(ctx.signer);
+        }
+
+        fn draw_winner(ctx: Context) {
+            require!(!state.participants.is_empty(), ErrorCode::NoParticipants);
+
+            // Native randomness — one line, no external service
+            let idx = random::range(0, state.participants.len() as u64) as usize;
+            state.winner = Some(state.participants[idx]);
+
+            emit!(WinnerSelected { winner: state.winner.unwrap() });
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="timers">Timers</h2>
+        <p>Timers in Rialo are native protocol primitives expressed through the Venus DSL's <code>AFTER</code> and <code>EVERY</code> keywords. See the <a href="venus-dsl.html" class="inline-link">Venus DSL reference</a> for full details. The key point: these are registered with the protocol at deployment time and execute at the network level — no hosted scheduler, no external service, no uptime concern.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">program {
+    EVERY 1h  => hourly_task();     // runs every hour
+    EVERY 24h => daily_report();    // runs every day
+    AFTER 7d  => trial_expiry();    // runs once after 7 days
+}</code></pre>
+        </div>
+
+        <h2 id="cross-chain">Cross-chain data</h2>
+        <p>Rialo can read state from other chains without bridges or wrappers. Cross-chain data is treated as a native read operation — the protocol handles proof verification under the hood.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+
+fn check_ethereum_balance(eth_address: [u8; 20]) -> Result<u128> {
+    // Read ETH balance from Ethereum mainnet — no bridge, no wrapper
+    let balance = cross_chain::read(
+        Chain::Ethereum,
+        eth_address,
+        "balanceOf",
+    )?;
+    Ok(balance)
+}</code></pre>
+        </div>
+
+        <h2 id="messaging">Messaging</h2>
+        <p>Programs can send encrypted notifications to users via email, phone number, or device — without the user needing a wallet or any Web3 setup. This is powered by Rialo's identity-based encryption layer.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+
+fn notify_user(recipient: Pubkey, message: &str) -> Result<()> {
+    // Send to wallet address (decrypted on their device)
+    messaging::send(recipient, message)?;
+
+    // Or send to email — no wallet needed on the receiving end
+    messaging::send_email("user@example.com", "Your order is ready")?;
+
+    // Send to phone number
+    messaging::send_sms("+1234567890", "Transaction confirmed")?;
+
+    Ok(())
+}</code></pre>
+        </div>
+
+        <div class="page-nav">
+          <a href="venus-dsl.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Venus DSL</div>
+          </a>
+          <a href="scale-agents.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">SCALE &amp; Agents</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

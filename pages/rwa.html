@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real World Assets — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link active">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Use Cases › Real World Assets</div>
+          <h1>Real World Assets</h1>
+          <p class="lead">Tokenize assets that react to live market events, automate lifecycle management, and settle without bridges or middleware — all natively on Rialo.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#why-rialo">Why Rialo for RWAs</a></li>
+            <li><a href="#asset-types">Asset types</a></li>
+            <li><a href="#lifecycle">Asset lifecycle</a></li>
+            <li><a href="#event-driven">Event-driven RWAs</a></li>
+            <li><a href="#example-bond">Example: tokenized bond</a></li>
+            <li><a href="#example-reit">Example: dynamic real estate token</a></li>
+            <li><a href="#enterprise">Enterprise &amp; institutional</a></li>
+          </ul>
+        </div>
+
+        <h2 id="why-rialo">Why Rialo for RWAs</h2>
+        <p>The RWA market grew 266% in 2025 and is widely projected to reach the trillion-dollar scale. But most current RWA implementations are static — a token that represents an asset, with a human or off-chain bot needed to update its state when real-world events occur.</p>
+
+        <p>Rialo makes RWAs <strong>dynamic</strong>. An asset can:</p>
+        <ul>
+          <li>Automatically pay coupons when a timer fires</li>
+          <li>Revalue itself when a price feed crosses a threshold</li>
+          <li>Trigger a margin call when collateral ratios drop</li>
+          <li>Read a corporate action from an external API and update token metadata</li>
+          <li>Cross-chain settle without a bridge</li>
+        </ul>
+
+        <p>All of this runs at the protocol level. No keeper bot. No oracle subscription. No off-chain scheduler to maintain.</p>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">ℹ️</div>
+          <div class="callout-body">
+            <div class="callout-title">CBOE recognition</div>
+            <p>Subzero Labs was featured in the Cboe Market Data Services Innovation Spotlight for Rialo's approach to bringing institutional market data natively on-chain for RWA applications.</p>
+          </div>
+        </div>
+
+        <h2 id="asset-types">Asset types</h2>
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-icon">🏦</div>
+            <h3 class="card-title">Fixed Income</h3>
+            <p class="card-body">Tokenized bonds, notes, and treasury products with automated coupon payments and maturity settlement.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🏠</div>
+            <h3 class="card-title">Real Estate</h3>
+            <p class="card-body">Fractional property tokens with rental yield distribution, valuation updates, and event-triggered rebalancing.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">📈</div>
+            <h3 class="card-title">Tokenized Equities</h3>
+            <p class="card-body">Stock representations with dividend payments, corporate action processing, and cross-exchange pricing.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🌾</div>
+            <h3 class="card-title">Commodities</h3>
+            <p class="card-body">Commodity-backed tokens with warehouse receipt verification, delivery triggers, and spot price feeds.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">💰</div>
+            <h3 class="card-title">Trade Finance</h3>
+            <p class="card-body">Invoice tokens, letters of credit, and trade receivables with automated verification and settlement.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🎨</div>
+            <h3 class="card-title">Collectibles &amp; IP</h3>
+            <p class="card-body">Art, IP rights, and collectibles with royalty automation, provenance tracking, and auction settlement.</p>
+          </div>
+        </div>
+
+        <h2 id="lifecycle">Asset lifecycle</h2>
+        <p>A complete RWA on Rialo goes through four stages, each of which can be automated:</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Issuance</h3>
+              <p>The asset is verified (via HTTPS calls to registries, credit agencies, or custody providers) and minted as a token. Metadata is stored on-chain with a verified link to the off-chain asset record.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Lifecycle management</h3>
+              <p>Venus DSL timers handle recurring events — coupon payments, rent distributions, revaluations — automatically at the protocol level.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Trading &amp; transfer</h3>
+              <p>Tokens trade on Rialo's native DEX or via cross-chain flows. Compliance checks (KYC/AML) can be embedded directly in the transfer logic.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h3>Settlement &amp; maturity</h3>
+              <p>At maturity or upon trigger conditions, the program automatically settles — burning tokens and distributing proceeds to holders.</p>
+            </div>
+          </div>
+        </div>
+
+        <h2 id="event-driven">Event-driven RWAs</h2>
+        <p>The key differentiator: Rialo RWAs are <em>reactive</em>. They respond to the world in real time without manual intervention or external infrastructure.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state {
+        asset_value:       u64,
+        collateral_ratio:  u64,  // in basis points
+        liquidation_threshold: u64,
+    }
+
+    program {
+        // Re-price every hour using native price feeds
+        EVERY 1h => update_valuation();
+
+        // React instantly when collateral drops below safe threshold
+        ON price_feed::below("ASSET/USD", state.liquidation_threshold)
+            => trigger_margin_call();
+
+        fn update_valuation() {
+            let spot = price_feed::get("ASSET/USD").unwrap();
+            state.asset_value = spot;
+            emit!(AssetRevalued { new_value: spot });
+        }
+
+        fn trigger_margin_call() {
+            // Notify all holders
+            SEND notify_holders();
+            // Allow 24h for additional collateral before liquidation
+            AFTER 24h => check_and_liquidate();
+        }
+
+        fn check_and_liquidate() {
+            let current = price_feed::get("ASSET/USD").unwrap();
+            if current < state.liquidation_threshold {
+                // Auto-liquidate and distribute proceeds
+                liquidate_and_distribute();
+            }
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="example-bond">Example: tokenized bond</h2>
+        <p>A fully automated corporate bond with semi-annual coupon payments and automatic maturity settlement.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        issuer:       Pubkey,
+        face_value:   u64,
+        coupon_rate:  u64,   // basis points, e.g. 500 = 5%
+        holders:      Vec<(Pubkey, u64)>,  // (holder, token_amount)
+        maturity:     i64,   // unix timestamp
+        total_supply: u64,
+    }
+
+    program {
+        fn issue(ctx: Context, face_value: u64, coupon_bps: u64, maturity_days: u64) {
+            state.issuer      = ctx.signer;
+            state.face_value  = face_value;
+            state.coupon_rate = coupon_bps;
+            state.maturity    = Clock::get().unix_timestamp
+                                + (maturity_days as i64 * 86400);
+            state.total_supply = face_value;
+
+            // Schedule semi-annual coupon payments
+            EVERY 182d => pay_coupon();
+
+            // Schedule maturity settlement
+            AFTER maturity_days d => settle_maturity();
+        }
+
+        fn pay_coupon() {
+            let coupon_per_token = state.face_value
+                * state.coupon_rate / 10_000
+                / (state.total_supply / 1_000_000);
+
+            for (holder, amount) in &state.holders {
+                let payout = coupon_per_token * amount / 1_000_000;
+                token::transfer(state.issuer, *holder, payout);
+                messaging::send(*holder, format!(
+                    "Coupon payment of {} received for bond position", payout
+                ));
+            }
+            emit!(CouponPaid { amount: coupon_per_token });
+        }
+
+        fn settle_maturity() {
+            for (holder, amount) in &state.holders {
+                let redemption = state.face_value * amount / state.total_supply;
+                token::transfer(state.issuer, *holder, redemption);
+            }
+            emit!(BondMatured { face_value: state.face_value });
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="example-reit">Example: dynamic real estate token</h2>
+        <p>A property token that fetches rental income data from a property management API and distributes yields monthly.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state {
+        property_id:   String,
+        manager_api:   String,
+        holders:       Vec<(Pubkey, u64)>,
+        total_shares:  u64,
+        last_valuation: u64,
+    }
+
+    program {
+        // Distribute rental income monthly
+        EVERY 30d => distribute_rental_income();
+
+        // Re-appraise property value quarterly
+        EVERY 90d => update_appraisal();
+
+        fn distribute_rental_income() {
+            // Fetch income data from property manager API
+            let resp = https::get(
+                format!("{}/income?property={}", state.manager_api, state.property_id)
+            ).unwrap();
+
+            let income: RentalIncome = resp.json();
+            let net_income = income.gross - income.expenses;
+
+            for (holder, shares) in &state.holders {
+                let share = net_income * shares / state.total_shares;
+                if share > 0 {
+                    token::transfer_stable(*holder, share);
+                }
+            }
+            emit!(RentalDistributed { amount: net_income });
+        }
+
+        fn update_appraisal() {
+            let resp = https::get(
+                format!("{}/valuation?property={}", state.manager_api, state.property_id)
+            ).unwrap();
+            let appraisal: PropertyValuation = resp.json();
+            state.last_valuation = appraisal.value_usd;
+            emit!(PropertyRevalued { value: appraisal.value_usd });
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="enterprise">Enterprise &amp; institutional</h2>
+        <p>Rialo's enterprise platform (<a href="https://enterprise.rialo.io/" target="_blank" class="inline-link">enterprise.rialo.io</a>) provides regulated-grade infrastructure for financial institutions:</p>
+
+        <ul>
+          <li><strong>IAM / AML / SIEM integration</strong> — connect to existing compliance infrastructure</li>
+          <li><strong>Deployment flexibility</strong> — public chain, private deployment, or hybrid</li>
+          <li><strong>Governance controls</strong> — multi-sig issuer controls, transfer restrictions, KYC embedding</li>
+          <li><strong>Audit trails</strong> — every state change is logged and attributable</li>
+        </ul>
+
+        <div class="page-nav">
+          <a href="scale-agents.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">SCALE &amp; Agents</div>
+          </a>
+          <a href="privacy-security.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">Privacy &amp; Security</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="https://www.rialo.io/posts/rialo-makes-real-world-assets-real" target="_blank">Rialo Makes RWAs Real ↗</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

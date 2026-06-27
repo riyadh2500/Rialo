@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCALE &amp; Agents — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link active">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Use Cases › SCALE &amp; Agents</div>
+          <h1>SCALE &amp; the Agent Economy</h1>
+          <p class="lead">Rialo's framework for building AI agents that coordinate tasks, transact on-chain, and participate in machine-to-machine economies — safely and verifiably.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#what-is-scale">What is SCALE?</a></li>
+            <li><a href="#agent-problem">The agent coordination problem</a></li>
+            <li><a href="#agent-identity">Agent identity &amp; wallets</a></li>
+            <li><a href="#agent-payments">Agent payments</a></li>
+            <li><a href="#agent-tasks">Task coordination</a></li>
+            <li><a href="#composable-services">Composable services</a></li>
+            <li><a href="#example">Full example</a></li>
+            <li><a href="#further-reading">Further reading</a></li>
+          </ul>
+        </div>
+
+        <h2 id="what-is-scale">What is SCALE?</h2>
+        <p><strong>SCALE</strong> (Secure Coordinated Agent Ledger Environment) is Rialo's native framework for building agent-native programs. It provides the on-chain primitives that AI agents need to operate autonomously: identity, payments, task delegation, compliance checks, and coordination — all without requiring a human in the loop for every transaction.</p>
+
+        <p>Rialo's broader vision is that the AI systems with the greatest real-world impact will be decentralized. SCALE is the infrastructure layer that makes that possible.</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-icon">🪪</div>
+            <h3 class="card-title">Agent Identity</h3>
+            <p class="card-body">Each agent has a verifiable on-chain identity with scoped permissions — what it can spend, where it can transact, and under what conditions.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">💸</div>
+            <h3 class="card-title">Autonomous Payments</h3>
+            <p class="card-body">Agents can pay other agents and services directly on-chain, within pre-approved limits, without human approval per transaction.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">📋</div>
+            <h3 class="card-title">Task Delegation</h3>
+            <p class="card-body">Agents can delegate subtasks to other agents with cryptographic guarantees about scope, compensation, and outcome.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🛡</div>
+            <h3 class="card-title">Compliance Rails</h3>
+            <p class="card-body">Spend limits, allowlists, audit trails, and revocable permissions are programmable — compliance is code, not policy.</p>
+          </div>
+        </div>
+
+        <h2 id="agent-problem">The agent coordination problem</h2>
+        <p>AI agents are increasingly capable of performing complex, multi-step tasks autonomously. But they face a fundamental coordination problem: <strong>how do agents transact with each other and with external services in a trustworthy way?</strong></p>
+
+        <p>Without on-chain infrastructure, agents must rely on:</p>
+        <ul>
+          <li>Centralized payment processors (single point of failure, censorship risk)</li>
+          <li>Human approval loops (defeats the purpose of automation)</li>
+          <li>Informal agreements with no enforcement mechanism</li>
+          <li>Fragile API integrations that break when services change</li>
+        </ul>
+
+        <p>SCALE solves this by giving agents a programmable, verifiable economic environment. An agent's budget, permissions, and task obligations are on-chain — transparent, enforceable, and auditable.</p>
+
+        <div class="callout callout-purple">
+          <div class="callout-icon">🤖</div>
+          <div class="callout-body">
+            <div class="callout-title">Machine-to-machine economies</div>
+            <p>Capabilities like payments, data access, and compliance become composable, monetizable services exposed through open marketplaces. An agent can discover, hire, and pay another agent to perform a specialized task — all autonomously, all on-chain.</p>
+          </div>
+        </div>
+
+        <h2 id="agent-identity">Agent identity &amp; wallets</h2>
+        <p>In SCALE, every agent is represented by a <strong>scoped wallet</strong> — an on-chain account that defines what the agent can do. Unlike a regular wallet, a scoped wallet has programmable constraints:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_cdk::scale::*;
+
+// Define an agent's scoped wallet
+let agent_wallet = ScopedWallet::new()
+    .owner(human_pubkey)                     // the human who controls this agent
+    .spend_limit(1_000_000_000)              // max spend per period (in lamports)
+    .spend_period(Duration::days(1))         // rolling 24-hour window
+    .allowed_programs(vec![                  // whitelist of programs the agent can call
+        defi_protocol::ID,
+        data_marketplace::ID,
+    ])
+    .require_audit_log(true)                 // every action is logged on-chain
+    .build()?;</code></pre>
+        </div>
+
+        <p>The agent's key material lives in a TEE — the private key never leaves the enclave, and the agent's actions can be cryptographically attributed to its identity.</p>
+
+        <h2 id="agent-payments">Agent payments</h2>
+        <p>Agents pay for services using standard token transfers, but with SCALE's spending controls enforced at the protocol level. A payment that exceeds the agent's daily limit is automatically rejected — no human needed to monitor it.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::scale::*;
+
+rialo! {
+    state {
+        agent_wallet: ScopedWallet,
+        task_budget:  u64,
+    }
+
+    program {
+        // Agent pays a data provider for a market report
+        fn purchase_data(ctx: Context, provider: Pubkey, price: u64) {
+            // ScopedWallet enforces spend limits automatically
+            scale::pay(
+                &state.agent_wallet,
+                provider,
+                price,
+                "market_data_report",
+            ).expect("Payment failed or exceeds spend limit");
+
+            // Request the data
+            SEND request_data_delivery(provider);
+        }
+
+        fn request_data_delivery(provider: Pubkey) {
+            let report = https::get(
+                format!("https://data.provider.io/report?agent={}", ctx.signer)
+            ).unwrap();
+            // process report...
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="agent-tasks">Task coordination</h2>
+        <p>Agents can delegate subtasks to other agents using SCALE's task delegation primitives. The delegating agent escrows payment, the sub-agent performs the work, and the escrow releases upon verifiable completion.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::scale::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        task_id:     u64,
+        delegatee:   Pubkey,
+        reward:      u64,
+        deadline:    i64,
+        completed:   bool,
+    }
+
+    program {
+        // Orchestrator agent delegates a task to a specialist agent
+        fn delegate_task(
+            ctx: Context,
+            specialist: Pubkey,
+            reward: u64,
+            deadline_hours: u64,
+        ) {
+            state.task_id   = scale::new_task_id();
+            state.delegatee = specialist;
+            state.reward    = reward;
+            state.deadline  = Clock::get().unix_timestamp
+                              + (deadline_hours as i64 * 3600);
+
+            // Escrow the reward
+            scale::escrow(reward);
+
+            // Notify the specialist agent
+            SEND notify_specialist(specialist, state.task_id);
+
+            // Auto-cancel and refund if deadline passes
+            AFTER deadline_hours h => cancel_if_incomplete();
+        }
+
+        fn submit_result(ctx: Context, result_hash: [u8; 32]) {
+            require!(ctx.signer == state.delegatee, ErrorCode::Unauthorized);
+            state.completed = true;
+
+            // Release escrowed reward to specialist
+            scale::release_escrow(state.delegatee, state.reward);
+            emit!(TaskCompleted {
+                task_id: state.task_id,
+                result_hash,
+            });
+        }
+
+        fn cancel_if_incomplete() {
+            if !state.completed {
+                scale::refund_escrow();
+                emit!(TaskCancelled { task_id: state.task_id });
+            }
+        }
+
+        fn notify_specialist(agent: Pubkey, task_id: u64) {
+            messaging::send(agent, format!("New task assigned: #{}", task_id));
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="composable-services">Composable services marketplace</h2>
+        <p>SCALE enables an open marketplace where agents publish capabilities as on-chain services, and other agents discover and consume them. Services are priced in tokens, and payment is atomic with delivery.</p>
+
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Service type</th><th>Example</th><th>Payment model</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Data feeds</strong></td><td>Credit scores, sentiment analysis, shipping status</td><td>Per query</td></tr>
+              <tr><td><strong>Compute</strong></td><td>ML inference, image generation, document parsing</td><td>Per request</td></tr>
+              <tr><td><strong>Coordination</strong></td><td>Multi-agent task orchestration, consensus</td><td>Per task</td></tr>
+              <tr><td><strong>Compliance</strong></td><td>KYC/AML checks, jurisdiction screening</td><td>Per check</td></tr>
+              <tr><td><strong>Execution</strong></td><td>Trade execution, settlement, bridging</td><td>Per trade + fee</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="example">Full example — autonomous research agent</h2>
+        <p>An agent that monitors news, purchases relevant data, and sends a daily briefing to its owner — entirely on-chain, no servers required.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_cdk::scale::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        owner:        Pubkey,
+        wallet:       ScopedWallet,
+        topics:       Vec<String>,
+        daily_budget: u64,
+    }
+
+    program {
+        fn initialize(ctx: Context, topics: Vec<String>, daily_budget: u64) {
+            state.owner  = ctx.signer;
+            state.topics = topics;
+            state.wallet = ScopedWallet::new()
+                .owner(ctx.signer)
+                .spend_limit(daily_budget)
+                .spend_period(Duration::days(1))
+                .build()
+                .unwrap();
+            state.daily_budget = daily_budget;
+
+            // Start daily briefing cycle
+            EVERY 24h => generate_briefing();
+        }
+
+        fn generate_briefing() {
+            let mut summaries = Vec::new();
+
+            for topic in &state.topics {
+                // Fetch news via native HTTPS
+                let news = https::get(
+                    format!("https://newsapi.example/v2/search?q={}", topic)
+                ).unwrap();
+
+                // Pay a summarization agent for AI-processed summary
+                let summary_agent = scale::discover_service("text_summarizer").unwrap();
+                scale::pay(&state.wallet, summary_agent.pubkey, summary_agent.price, "summarize").unwrap();
+
+                let summary = https::post(
+                    summary_agent.endpoint,
+                    &news.body,
+                ).unwrap();
+
+                summaries.push(summary.text);
+            }
+
+            // Deliver briefing to owner (no wallet needed on their end)
+            let briefing = summaries.join("\n\n---\n\n");
+            messaging::send(state.owner, &briefing);
+
+            emit!(BriefingDelivered {
+                owner: state.owner,
+                topic_count: state.topics.len() as u32,
+            });
+        }
+
+        // Owner can update topics
+        fn update_topics(ctx: Context, new_topics: Vec<String>) {
+            require!(ctx.signer == state.owner, ErrorCode::Unauthorized);
+            state.topics = new_topics;
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="further-reading">Further reading</h2>
+        <div class="card-grid card-grid-2">
+          <a href="https://www.rialo.io/posts/making-the-agent-economy-simple-and-safe-with-rialo" target="_blank" class="card card-accent-purple">
+            <div class="card-icon">📄</div>
+            <h3 class="card-title">SCALE Blog Post ↗</h3>
+            <p class="card-body">Making the Agent Economy Simple and Safe with Rialo — the official deep-dive on the SCALE framework.</p>
+          </a>
+          <a href="https://agents.rialo.io/" target="_blank" class="card card-accent-blue">
+            <div class="card-icon">🤖</div>
+            <h3 class="card-title">Agentic Edge Harness ↗</h3>
+            <p class="card-body">Rialo's confidential on-chain execution framework for production AI agent deployments.</p>
+          </a>
+        </div>
+
+        <div class="page-nav">
+          <a href="native-primitives.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Native Primitives</div>
+          </a>
+          <a href="rwa.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">Real World Assets</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

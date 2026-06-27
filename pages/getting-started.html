@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()">
+        <span></span><span></span><span></span>
+      </button>
+      <a href="../index.html" class="logo">
+        <span class="logo-mark">●</span>
+        <span class="logo-text">Rialo Docs</span>
+      </a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" />
+        <kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link active">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Getting Started</div>
+          <h1>Getting Started</h1>
+          <p class="lead">Set up your environment, install the Rialo CDK, and deploy your first on-chain program in minutes.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#prerequisites">Prerequisites</a></li>
+            <li><a href="#install">Install the CDK</a></li>
+            <li><a href="#first-program">Your first program</a></li>
+            <li><a href="#deploy">Build &amp; deploy</a></li>
+            <li><a href="#testnet">Connect to testnet</a></li>
+            <li><a href="#next-steps">Next steps</a></li>
+          </ul>
+        </div>
+
+        <!-- Prerequisites -->
+        <h2 id="prerequisites">Prerequisites</h2>
+        <p>Before you start you'll need a few standard tools. Rialo programs are written in <strong>Rust</strong> and compiled to the Rialo VM (RISC-V / SVM-compatible). If you've built on Solana before, the toolchain will feel familiar.</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Install Rust</h3>
+              <p>Rialo requires Rust stable (≥ 1.75). Install via <code>rustup</code>:</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-bash">curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup update stable
+rustup target add wasm32-unknown-unknown</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>Install the Rialo CLI</h3>
+              <p>The CLI handles project scaffolding, local simulation, and deployments.</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-bash">cargo install rialo-cli --locked</code></pre>
+              </div>
+              <p>Verify the install:</p>
+              <div class="code-block">
+                <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+                <pre><code class="language-bash">rialo --version
+# rialo-cli 0.9.x</code></pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Install Node.js (optional — for client SDKs)</h3>
+              <p>If you want to interact with deployed programs from a TypeScript/JavaScript client, install Node.js ≥ 18.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Install CDK -->
+        <h2 id="install">Install the CDK</h2>
+        <p>The <strong>Rialo CDK</strong> (<code>rialo-cdk</code>) is the primary Rust library for building on-chain programs. Add it to your <code>Cargo.toml</code>:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">toml</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-toml">[package]
+name    = "my-rialo-program"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rialo-cdk     = "0.9"
+rialo-venus-dsl = "0.9"   # async DSL macros — AFTER, EVERY, ON, SEND, START
+
+[lib]
+crate-type = ["cdylib", "lib"]</code></pre>
+        </div>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">ℹ️</div>
+          <div class="callout-body">
+            <div class="callout-title">Solana compatibility</div>
+            <p>Rialo's SVM layer is API-compatible with Solana programs. If you have an existing Anchor project, you can port it using <code>rialo-sol-lang</code> in place of the standard Anchor dependency with minimal changes.</p>
+          </div>
+        </div>
+
+        <!-- First Program -->
+        <h2 id="first-program">Your first program</h2>
+        <p>Create a new project with the CLI scaffolder:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-bash">rialo new counter
+cd counter</code></pre>
+        </div>
+
+        <p>The generated <code>src/lib.rs</code> shows the minimal structure of a Rialo program using the Venus DSL:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    // Persistent on-chain state
+    state {
+        count: u64,
+        owner: Pubkey,
+    }
+
+    // Program entrypoints
+    program {
+        // Callable by anyone — increments the counter
+        fn increment(ctx: Context) {
+            state.count += 1;
+            emit!(CounterIncremented { count: state.count });
+        }
+
+        // Only the owner can reset
+        fn reset(ctx: Context) {
+            require!(ctx.signer == state.owner, ErrorCode::Unauthorized);
+            state.count = 0;
+        }
+    }
+}
+
+// Event definition
+#[event]
+pub struct CounterIncremented {
+    pub count: u64,
+}</code></pre>
+        </div>
+
+        <p>Key things to notice:</p>
+        <ul>
+          <li>The <code>rialo!</code> macro is the entry point for any Venus DSL program.</li>
+          <li><code>state { }</code> defines persistent data that survives across transactions — no manual account serialization.</li>
+          <li><code>program { }</code> holds your callable functions and async workflows.</li>
+          <li><code>emit!</code> fires an on-chain event that external listeners or other programs can react to.</li>
+        </ul>
+
+        <!-- Build & Deploy -->
+        <h2 id="deploy">Build &amp; deploy</h2>
+        <p>Build the program for the Rialo VM:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-bash">rialo build</code></pre>
+        </div>
+
+        <p>Run a local simulation to test before deploying:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-bash">rialo localnet start        # spins up a local Rialo node
+rialo deploy ./target/deploy/counter.so --url localhost
+rialo call counter increment --url localhost</code></pre>
+        </div>
+
+        <div class="callout callout-tip">
+          <div class="callout-icon">✅</div>
+          <div class="callout-body">
+            <div class="callout-title">Tip — watch mode</div>
+            <p>Run <code>rialo localnet watch</code> to automatically redeploy when you save changes during development.</p>
+          </div>
+        </div>
+
+        <!-- Testnet -->
+        <h2 id="testnet">Connect to testnet</h2>
+        <p>The Rialo testnet launched in early 2026. Request a testnet wallet and airdrop tokens to get started:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-bash"># Generate a new keypair
+rialo keygen --outfile ~/.config/rialo/id.json
+
+# Airdrop testnet tokens
+rialo airdrop 2 --url https://testnet.rialo.io
+
+# Deploy to testnet
+rialo deploy ./target/deploy/counter.so --url https://testnet.rialo.io</code></pre>
+        </div>
+
+        <div class="callout callout-warning">
+          <div class="callout-icon">⚠️</div>
+          <div class="callout-body">
+            <div class="callout-title">Testnet access</div>
+            <p>Full testnet access is currently gated via the early-access program. <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="inline-link">Apply here →</a></p>
+          </div>
+        </div>
+
+        <!-- Next Steps -->
+        <h2 id="next-steps">Next steps</h2>
+        <div class="card-grid">
+          <a href="core-concepts.html" class="card">
+            <div class="card-icon">🏗</div>
+            <h3 class="card-title">Core Concepts</h3>
+            <p class="card-body">Understand the REX runtime, concurrency model, and how Rialo's VM differs from EVM and SVM.</p>
+          </a>
+          <a href="venus-dsl.html" class="card">
+            <div class="card-icon">⚡</div>
+            <h3 class="card-title">Venus DSL</h3>
+            <p class="card-body">Learn AFTER, EVERY, ON, SEND, and START — the async primitives that replace middleware.</p>
+          </a>
+          <a href="native-primitives.html" class="card">
+            <div class="card-icon">🌐</div>
+            <h3 class="card-title">Native Primitives</h3>
+            <p class="card-body">Make HTTPS calls, read price feeds, and generate randomness — all from on-chain code.</p>
+          </a>
+        </div>
+
+        <div class="page-nav">
+          <a href="../index.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Introduction</div>
+          </a>
+          <a href="core-concepts.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">Architecture</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="https://www.rialo.io/posts/introducing-rialo" target="_blank">Introducing Rialo</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architecture — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link active">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Core Concepts</div>
+          <h1>Architecture</h1>
+          <p class="lead">How Rialo is structured — from the RISC-V runtime to the concurrency model and multi-VM execution environment.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#overview">Architecture overview</a></li>
+            <li><a href="#rex">REX — the execution runtime</a></li>
+            <li><a href="#vm-layers">VM layers</a></li>
+            <li><a href="#concurrency">Concurrency model</a></li>
+            <li><a href="#event-driven">Event-driven execution</a></li>
+            <li><a href="#state-model">State model</a></li>
+            <li><a href="#vs-others">vs. Ethereum / Solana</a></li>
+          </ul>
+        </div>
+
+        <h2 id="overview">Architecture overview</h2>
+        <p>Rialo is described as a <strong>"real-world blockchain"</strong> — but technically it's a vertically integrated programmable network. Unlike Ethereum or Solana, which require developers to assemble a stack of external services (oracles, bridges, keepers, relayers), Rialo bakes those capabilities directly into the protocol layer.</p>
+
+        <p>The stack can be thought of in five layers:</p>
+
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead>
+              <tr><th>Layer</th><th>Responsibility</th><th>Key component</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Execution</strong></td><td>Run programs, enforce state transitions</td><td>REX (RISC-V based VM)</td></tr>
+              <tr><td><strong>Async/DSL</strong></td><td>Timers, events, HTTP calls as first-class primitives</td><td>Venus DSL</td></tr>
+              <tr><td><strong>Data</strong></td><td>Real-time pricing, external API access</td><td>Native feeds + TEE-verified HTTPS</td></tr>
+              <tr><td><strong>Identity &amp; Privacy</strong></td><td>Encrypted messaging, social login, 2FA</td><td>IBE + threshold MPC</td></tr>
+              <tr><td><strong>Agent coordination</strong></td><td>AI agent tasks, payments, compliance</td><td>SCALE framework</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="rex">REX — the execution runtime</h2>
+        <p>The <strong>Rialo Extended Execution Runtime (REX)</strong> is the heart of the network. It is built on <strong>RISC-V</strong>, an open instruction set architecture that gives Rialo several advantages over EVM or WASM-based chains:</p>
+
+        <ul>
+          <li><strong>ZK-friendly</strong> — RISC-V's simpler instruction set makes it easier to generate zero-knowledge proofs of execution, enabling privacy-preserving computation.</li>
+          <li><strong>Confidential computing</strong> — REX integrates with Trusted Execution Environments (TEEs) to run programs in hardware-isolated enclaves, enabling private state and verifiable off-chain computation.</li>
+          <li><strong>Native randomness</strong> — True on-chain randomness is a first-class primitive in REX, not a service you bolt on.</li>
+          <li><strong>Performance</strong> — RISC-V's clean ISA allows for highly optimized JIT compilation with predictable, stable execution costs.</li>
+        </ul>
+
+        <div class="callout callout-info">
+          <div class="callout-icon">ℹ️</div>
+          <div class="callout-body">
+            <div class="callout-title">Why RISC-V over EVM?</div>
+            <p>The EVM was designed for sequential, isolated contract execution — a model that predates the modern async web. RISC-V gives Rialo a general-purpose foundation that can express async patterns, confidential compute, and hardware-level optimizations without retrofitting workarounds onto an aging design.</p>
+          </div>
+        </div>
+
+        <h2 id="vm-layers">VM layers</h2>
+        <p>REX is Rialo's canonical execution environment, but the network supports multiple VM execution surfaces to meet developers where they already are:</p>
+
+        <div class="card-grid">
+          <div class="card">
+            <div class="card-icon">⚙️</div>
+            <h3 class="card-title">SVM (Solana VM) <span class="badge badge-green">Available</span></h3>
+            <p class="card-body">Full Solana program compatibility via Sealevel. Existing Rust/Anchor programs can be ported with minimal changes using <code>rialo-sol-lang</code>.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🔷</div>
+            <h3 class="card-title">EVM <span class="badge badge-orange">Planned</span></h3>
+            <p class="card-body">Ethereum VM compatibility layer for porting Solidity contracts, enabling access to the large Ethereum developer ecosystem.</p>
+          </div>
+          <div class="card">
+            <div class="card-icon">🔵</div>
+            <h3 class="card-title">MoveVM <span class="badge badge-orange">Planned</span></h3>
+            <p class="card-body">Move language support for developers coming from Sui or Aptos, with resource-oriented programming semantics.</p>
+          </div>
+        </div>
+
+        <h2 id="concurrency">Concurrency model</h2>
+        <p>Parallel execution is a near-universal requirement for high-throughput blockchains. Rialo's concurrency model is designed for correctness first, performance second — avoiding the class of bugs that come from optimistic parallel execution without proper conflict detection.</p>
+
+        <p>Transactions in Rialo are organized into <strong>sequential batches</strong> with consecutive IDs. Each transaction in a batch:</p>
+        <ol>
+          <li>Declares all accounts it needs <em>upfront</em> (no lazy account resolution mid-execution)</li>
+          <li>Executes against its declared account set</li>
+          <li>Commits <strong>atomically</strong> — all state changes land, or none do</li>
+        </ol>
+
+        <p>This design eliminates the most common source of parallel execution bugs (mid-flight account conflicts) while still enabling high throughput because non-overlapping account sets can be scheduled in parallel across batches.</p>
+
+        <div class="callout callout-tip">
+          <div class="callout-icon">✅</div>
+          <div class="callout-body">
+            <div class="callout-title">Interactive demo</div>
+            <p>Rialo's learn portal has a visual concurrency control simulator. <a href="https://concurrency-control.learn.rialo.io/" target="_blank" class="inline-link">Try it →</a></p>
+          </div>
+        </div>
+
+        <h2 id="event-driven">Event-driven execution</h2>
+        <p>Most blockchains are <em>passive</em> — they wait for transactions to arrive. Rialo is <em>reactive</em>. Programs can register to run in response to:</p>
+
+        <ul>
+          <li><strong>Time triggers</strong> — <code>EVERY 60s</code>, <code>AFTER 24h</code></li>
+          <li><strong>On-chain events</strong> — another program emits an event your program is listening for</li>
+          <li><strong>External data</strong> — a price feed crosses a threshold, an API returns a specific payload</li>
+          <li><strong>Cross-chain signals</strong> — state changes on another chain propagate without a bridge</li>
+        </ul>
+
+        <p>This is implemented at the protocol level via the Venus DSL, not via off-chain keepers or cron jobs. There is nothing to host, nothing to monitor, nothing to pay a third party for.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state { last_run: i64 }
+
+    program {
+        // Protocol-level cron — no keeper, no bot
+        EVERY 1h => {
+            let price = price_feed::get("BTC/USD");
+            if price < 50_000 {
+                SEND alert_subscribers();
+            }
+        };
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="state-model">State model</h2>
+        <p>Rialo programs have two kinds of state:</p>
+
+        <ul>
+          <li><strong>Workflow state</strong> — persistent data declared in the <code>state { }</code> block. This survives across async operations and transaction boundaries. The runtime handles serialization, account allocation, and rent automatically.</li>
+          <li><strong>Ephemeral state</strong> — local variables within a function call. Discarded after the call completes.</li>
+        </ul>
+
+        <p>The state model is intentionally simpler than Solana's account model. You don't manage PDAs, account sizes, or rent exemptions manually — the CDK and runtime handle these details, letting you focus on program logic.</p>
+
+        <h2 id="vs-others">vs. Ethereum / Solana</h2>
+
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead>
+              <tr><th>Feature</th><th>Ethereum</th><th>Solana</th><th>Rialo</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>VM</td><td>EVM (stack-based)</td><td>eBPF (SVM)</td><td>RISC-V (REX) + SVM compat</td></tr>
+              <tr><td>External data</td><td>Oracle (Chainlink etc.)</td><td>Oracle (Pyth etc.)</td><td>Native feeds + TEE HTTPS</td></tr>
+              <tr><td>Automation</td><td>Keeper / Gelato</td><td>Clockwork / custom</td><td>Native — Venus DSL</td></tr>
+              <tr><td>Cross-chain</td><td>Bridge (Wormhole etc.)</td><td>Bridge (Wormhole etc.)</td><td>Native — no bridges</td></tr>
+              <tr><td>Privacy</td><td>ZK rollup (external)</td><td>Limited</td><td>TEE + IBE + MPC native</td></tr>
+              <tr><td>Randomness</td><td>VRF (Chainlink)</td><td>VRF (external)</td><td>Native to runtime</td></tr>
+              <tr><td>Gas model</td><td>Volatile, auction-based</td><td>Low but variable</td><td>Stable, predictable costs</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="page-nav">
+          <a href="getting-started.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Getting Started</div>
+          </a>
+          <a href="venus-dsl.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">Venus DSL</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

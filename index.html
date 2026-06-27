@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rialo Doc — The Real World Blockchain</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/prism.css" />
+</head>
+<body>
+
+<!-- ═══ TOP NAV ═══════════════════════════════════════════════ -->
+<header class="topnav">
+  <div class="topnav-left">
+    <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </button>
+    <!-- Rialo wordmark only -->
+    <a href="index.html" class="logo-wrap">
+      <span class="logo-name">Rialo</span>
+      <span class="logo-badge">Docs</span>
+    </a>
+  </div>
+  <div class="topnav-center">
+    <div class="search-bar">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search docs…" id="search-input" />
+      <kbd>⌘K</kbd>
+    </div>
+  </div>
+  <div class="topnav-right">
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-dark">Early Access</a>
+    <a href="https://x.com/rialo_io" target="_blank" class="icon-link" aria-label="X / Twitter">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+    </a>
+  </div>
+</header>
+
+<!-- ═══ WAVY HEADER DECORATION (matches rialo.io style) ══════ -->
+<div class="wavy-decoration">
+  <svg viewBox="0 0 1440 120" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 40 C80 40 80 80 160 80 C240 80 240 20 320 20 C400 20 400 70 480 70 C560 70 560 30 640 30 C720 30 720 80 800 80 C880 80 880 20 960 20 C1040 20 1040 65 1120 65 C1200 65 1200 35 1280 35 C1360 35 1360 70 1440 70 L1440 120 L0 120 Z" stroke="#0f0e0c" stroke-width="1.5" fill="none" opacity="0.12"/>
+    <path d="M0 55 C100 55 100 90 180 90 C260 90 260 30 360 30 C440 30 440 75 520 75 C600 75 600 25 700 25 C780 25 780 75 860 75 C940 75 940 35 1020 35 C1100 35 1100 70 1200 70 C1280 70 1280 45 1380 45 C1420 45 1430 55 1440 55" stroke="#0f0e0c" stroke-width="1" fill="none" opacity="0.07"/>
+  </svg>
+</div>
+
+<!-- ═══ LAYOUT ════════════════════════════════════════════════ -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <span class="nav-section-title">Getting Started</span>
+        <a href="index.html" class="nav-link active">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          Introduction
+        </a>
+        <a href="pages/quick-start.html" class="nav-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Quick Start Guide
+        </a>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-section">
+        <span class="nav-section-title">Core Docs</span>
+        <a href="pages/api-reference.html" class="nav-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          API Reference
+        </a>
+        <a href="pages/tutorials.html" class="nav-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Tutorials
+        </a>
+        <a href="pages/smart-contracts.html" class="nav-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Smart Contracts
+        </a>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-section">
+        <span class="nav-section-title">Help</span>
+        <a href="pages/faq.html" class="nav-link">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          FAQ
+        </a>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-section">
+        <span class="nav-section-title">Resources</span>
+        <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io</a>
+        <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord</a>
+        <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X</a>
+        <a href="https://www.rialo.io/blog" target="_blank" class="nav-link nav-external">Blog</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="content">
+    <div class="content-inner">
+
+      <!-- HERO -->
+      <div class="hero">
+        <div class="hero-eyebrow"><span class="dot"></span>Documentation · v0.9 Testnet</div>
+        <h1 class="hero-title">Build apps that<br>work like the internet.</h1>
+        <p class="hero-sub">Rialo is a decentralized, high-performance programmable network. Native HTTP calls, real-time data, sub-second reactions — no oracles, no bridges, no middleware.</p>
+        <div class="hero-actions">
+          <a href="pages/quick-start.html" class="btn btn-dark btn-lg">Quick Start →</a>
+          <a href="pages/api-reference.html" class="btn btn-outline btn-lg">API Reference</a>
+          <span class="hero-meta">Backed by Pantera Capital · Coinbase Ventures · Variant</span>
+        </div>
+
+        <div class="hero-terminal">
+          <div class="terminal-bar">
+            <span class="td td-r"></span><span class="td td-y"></span><span class="td td-g"></span>
+            <span class="t-title">terminal</span>
+          </div>
+          <div class="terminal-body">
+            <div><span class="t-p">$ </span><span class="t-c">cargo install rialo-cli --locked</span></div>
+            <div><span class="t-o">   Finished · rialo-cli v0.9.2 installed</span></div>
+            <div><span class="t-p">$ </span><span class="t-c">rialo new my-app && cd my-app</span></div>
+            <div><span class="t-s">✓ Created Rialo project: my-app</span></div>
+            <div><span class="t-p">$ </span><span class="t-c">rialo build && rialo deploy</span></div>
+            <div><span class="t-s">✓ Deployed to testnet · sig: 3xKp…f9Qr</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTIONS NAV -->
+      <section style="margin-bottom:3rem">
+        <span class="section-label">Documentation</span>
+        <div class="card-grid" style="margin-top:0.85rem">
+          <a href="pages/quick-start.html" class="card">
+            <div class="card-num">01 — QUICK START</div>
+            <div class="card-title">Quick Start Guide</div>
+            <div class="card-body">Install the CLI, scaffold a project, and deploy to testnet in under 5 minutes.</div>
+            <div class="card-arrow">Get started →</div>
+          </a>
+          <a href="pages/api-reference.html" class="card">
+            <div class="card-num">02 — REFERENCE</div>
+            <div class="card-title">API Reference</div>
+            <div class="card-body">Full reference for rialo-cdk — price feeds, HTTPS, messaging, randomness, SCALE.</div>
+            <div class="card-arrow">Explore →</div>
+          </a>
+          <a href="pages/tutorials.html" class="card">
+            <div class="card-num">03 — TUTORIALS</div>
+            <div class="card-title">Tutorials</div>
+            <div class="card-body">Step-by-step guides for DeFi, RWAs, subscriptions, lotteries, and AI agents.</div>
+            <div class="card-arrow">Learn →</div>
+          </a>
+          <a href="pages/smart-contracts.html" class="card">
+            <div class="card-num">04 — CONTRACTS</div>
+            <div class="card-title">Smart Contracts</div>
+            <div class="card-body">Venus DSL in depth — async ops, workflow state, security patterns, and testing.</div>
+            <div class="card-arrow">Build →</div>
+          </a>
+          <a href="pages/faq.html" class="card">
+            <div class="card-num">05 — FAQ</div>
+            <div class="card-title">FAQ</div>
+            <div class="card-body">Common questions about the network, testnet access, token, and development.</div>
+            <div class="card-arrow">Read →</div>
+          </a>
+        </div>
+      </section>
+
+      <!-- WHY RIALO -->
+      <section style="margin-bottom:3rem">
+        <span class="section-label">Why Rialo</span>
+        <h2 style="margin-top:0.4rem;margin-bottom:0.6rem">The stack built for real-world apps</h2>
+        <p>Most blockchains are islands — fast on paper, painful in practice. Rialo rethinks the stack so your app can talk to the internet natively, use real-time data on-chain, and ship experiences people already understand.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:1.25rem">
+          <div class="card"><div class="card-title">🌐 Real World Apps</div><div class="card-body">Web calls, event triggers, and cross-chain flows built in. No middleware.</div></div>
+          <div class="card"><div class="card-title">📡 Real Time Data</div><div class="card-body">Native pricing feeds. No Chainlink. No Pyth. No extra trust assumptions.</div></div>
+          <div class="card"><div class="card-title">⚡ Sub-Second Reactions</div><div class="card-body">Event-driven execution. No polling. Transactions fire from real-world inputs.</div></div>
+          <div class="card"><div class="card-title">🔒 Privacy-First UX</div><div class="card-body">Social login, native 2FA, encrypted messaging — no wallet setup required.</div></div>
+          <div class="card"><div class="card-title">🔗 No Bridges</div><div class="card-body">Data moves across chains without wrappers. Smarter pricing, fairer swaps.</div></div>
+          <div class="card"><div class="card-title">🛠 Ergonomics</div><div class="card-body">Async/await patterns, native randomness, RISC-V. Write logic, not scaffolding.</div></div>
+        </div>
+      </section>
+
+      <!-- STACK TABLE -->
+      <section style="margin-bottom:3rem">
+        <span class="section-label">Architecture</span>
+        <h2 style="margin-top:0.4rem;margin-bottom:0.6rem">The Rialo stack</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Layer</th><th>Responsibility</th><th>Component</th></tr></thead>
+            <tbody>
+              <tr><td><strong>VM / Runtime</strong></td><td>Execute programs, confidential compute</td><td><code>REX</code> — RISC-V, ZK-friendly</td></tr>
+              <tr><td><strong>Program layer</strong></td><td>On-chain logic, SVM compatible</td><td><code>rialo-cdk</code></td></tr>
+              <tr><td><strong>Async DSL</strong></td><td>Timers, events, HTTP as primitives</td><td><code>Venus DSL</code></td></tr>
+              <tr><td><strong>Data</strong></td><td>Real-time pricing, external APIs</td><td>Native feeds + TEE HTTPS</td></tr>
+              <tr><td><strong>Identity</strong></td><td>Social login, 2FA, encrypted comms</td><td>IBE + Threshold MPC</td></tr>
+              <tr><td><strong>Agents</strong></td><td>AI agent coordination &amp; payments</td><td><code>SCALE</code> framework</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section style="margin-bottom:1rem">
+        <div style="border:1px solid var(--border);border-radius:var(--radius-lg);padding:2.5rem;text-align:center;background:rgba(15,14,12,0.03);">
+          <p style="font-size:0.68rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:0.75rem">Testnet is live</p>
+          <h2 style="margin:0 0 0.65rem;font-size:1.65rem;font-weight:800;letter-spacing:-0.03em">Start building on Rialo</h2>
+          <p style="max-width:400px;margin:0 auto 1.75rem;font-size:0.95rem">Join the early builder program and deploy your first program today.</p>
+          <div style="display:flex;gap:0.65rem;justify-content:center;flex-wrap:wrap">
+            <a href="pages/quick-start.html" class="btn btn-dark btn-lg">Quick Start →</a>
+            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-outline btn-lg">Apply for Access</a>
+          </div>
+        </div>
+      </section>
+
+      <footer class="doc-footer">
+        <div class="footer-inner">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="https://www.rialo.io/posts/introducing-rialo" target="_blank">Introducing Rialo</a>
+            <a href="https://www.rialo.io/blog" target="_blank">Blog</a>
+            <a href="pages/faq.html">FAQ</a>
+          </div>
+          <span class="footer-copy">© 2026 Subzero Labs</span>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/prism.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>

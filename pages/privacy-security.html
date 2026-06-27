@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy &amp; Security — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link active">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Use Cases › Privacy &amp; Security</div>
+          <h1>Privacy &amp; Security</h1>
+          <p class="lead">Rialo's privacy-first architecture — TEEs, identity-based encryption, threshold MPC, social login, native 2FA, and encrypted messaging without wallet setup.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#overview">Privacy model overview</a></li>
+            <li><a href="#tee">Trusted Execution Environments</a></li>
+            <li><a href="#ibe">Identity-based encryption</a></li>
+            <li><a href="#mpc">Threshold MPC</a></li>
+            <li><a href="#social-login">Social login</a></li>
+            <li><a href="#2fa">Native 2FA</a></li>
+            <li><a href="#scheduled-tx">Scheduled transactions</a></li>
+            <li><a href="#encrypted-messaging">Encrypted messaging</a></li>
+            <li><a href="#zk">ZK-friendly execution</a></li>
+          </ul>
+        </div>
+
+        <h2 id="overview">Privacy model overview</h2>
+        <p>Most blockchains treat privacy as an afterthought — a feature added via external ZK rollups or mixer protocols, requiring additional trust assumptions and user friction. Rialo bakes privacy into the base layer.</p>
+
+        <p>The privacy stack operates at three levels:</p>
+        <ul>
+          <li><strong>Compute privacy</strong> — programs can execute in hardware-isolated TEE enclaves, keeping intermediate state confidential even from node operators</li>
+          <li><strong>Data privacy</strong> — messages between users and programs are encrypted end-to-end using identity-based encryption, requiring no key exchange setup</li>
+          <li><strong>User privacy</strong> — users can interact with on-chain programs without a crypto wallet, using familiar Web2 identity methods</li>
+        </ul>
+
+        <h2 id="tee">Trusted Execution Environments (TEEs)</h2>
+        <p>TEEs are hardware-isolated compute environments (Intel TDX, AMD SEV-SNP) where code and data are protected from inspection or tampering — even by the machine's operator. Rialo's REX runtime integrates TEEs natively for:</p>
+
+        <ul>
+          <li><strong>Confidential program execution</strong> — sensitive business logic runs inside an enclave; inputs and outputs are visible, but intermediate state is not</li>
+          <li><strong>Private key management</strong> — agent and user keys live in enclaves; they are never exposed to the operating system or network</li>
+          <li><strong>Verified HTTPS responses</strong> — external API calls are made from within the enclave, with cryptographic proof that the response was not tampered with</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_cdk::tee::*;
+
+// Mark a function to run inside a TEE enclave
+#[confidential]
+fn process_sensitive_data(credit_score: u32, income: u64) -> LoanDecision {
+    // This logic runs in a TEE enclave.
+    // The inputs and output are committed on-chain,
+    // but the computation internals are not visible to anyone.
+    let risk_score = compute_risk(credit_score, income);
+    if risk_score < RISK_THRESHOLD {
+        LoanDecision::Approved { rate_bps: 450 }
+    } else {
+        LoanDecision::Declined
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="ibe">Identity-based encryption (IBE)</h2>
+        <p>Rialo uses <strong>identity-based encryption</strong> to let programs send encrypted data to any user using only their identifier — an email address, phone number, wallet address, or social login handle. The recipient doesn't need to have set up any keys in advance.</p>
+
+        <p>Under the hood, IBE uses a trusted key generation authority (run by the Rialo network itself, distributed via MPC) to derive public keys from identities. The recipient can decrypt using their identity-bound private key, which is derived on first authentication.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_cdk::crypto::*;
+
+fn send_private_document(recipient_email: &str, document: &[u8]) -> Result<()> {
+    // Encrypt using recipient's email — no prior key exchange needed
+    let encrypted = ibe::encrypt(
+        Identity::Email(recipient_email),
+        document,
+    )?;
+
+    // Store encrypted blob on-chain; only recipient can decrypt
+    store_encrypted_data(encrypted);
+    Ok(())
+}
+
+fn send_to_wallet(recipient: Pubkey, secret: &[u8]) -> Result<()> {
+    // Can also encrypt to a wallet address
+    let encrypted = ibe::encrypt(Identity::Pubkey(recipient), secret)?;
+    store_encrypted_data(encrypted);
+    Ok(())
+}</code></pre>
+        </div>
+
+        <h2 id="mpc">Threshold MPC</h2>
+        <p><strong>Threshold Multi-Party Computation (MPC)</strong> is used for operations that require multiple independent parties to agree before a key is used — eliminating single points of failure in key management.</p>
+
+        <p>In Rialo, threshold MPC is used for:</p>
+        <ul>
+          <li>The IBE key generation authority — no single node can generate user keys unilaterally</li>
+          <li>Cross-chain signing — authorizing outbound cross-chain messages requires a threshold of validators</li>
+          <li>Multi-sig program controls — enterprise programs can require multiple signers using native MPC without complex smart contract logic</li>
+        </ul>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::crypto::mpc::*;
+
+// Require 3-of-5 threshold for high-value operations
+fn setup_treasury(signers: [Pubkey; 5]) -> Result<ThresholdWallet> {
+    ThresholdWallet::new()
+        .signers(signers)
+        .threshold(3)          // 3 of 5 must approve
+        .build()
+}</code></pre>
+        </div>
+
+        <h2 id="social-login">Social login</h2>
+        <p>Rialo supports <strong>social login</strong> as a first-class authentication method. Users can sign in with Google, Apple, email OTP, or phone number — their on-chain identity is derived from their social login credential, with the private key managed in a TEE.</p>
+
+        <p>From the user's perspective this is identical to signing into a regular web app. They never see a seed phrase, never install a wallet extension, and never manage private keys manually.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::auth::*;
+
+fn verify_user_identity(ctx: Context) -> Result<Pubkey> {
+    // Accepts Google OAuth, Apple ID, email OTP, or phone
+    let identity = auth::verify_social_login(&ctx.auth_token)?;
+
+    // Returns the on-chain pubkey derived from the social identity
+    // The user never needs to know about private keys
+    Ok(identity.pubkey)
+}</code></pre>
+        </div>
+
+        <h2 id="2fa">Native 2FA</h2>
+        <p>Two-factor authentication is a native protocol feature. Programs can require 2FA for sensitive operations — and the 2FA challenge is issued and verified on-chain, not by a third-party service.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::auth::*;
+
+rialo! {
+    state {
+        owner: Pubkey,
+        balance: u64,
+    }
+
+    program {
+        // Large withdrawals require 2FA — enforced at protocol level
+        #[require_2fa(threshold = 10_000_000_000)]  // require 2FA above 10 SOL equivalent
+        fn withdraw(ctx: Context, amount: u64) {
+            require!(ctx.signer == state.owner, ErrorCode::Unauthorized);
+            require!(state.balance >= amount, ErrorCode::Insufficient);
+            state.balance -= amount;
+            token::transfer(state.owner, amount);
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="scheduled-tx">Scheduled transactions</h2>
+        <p>Users can schedule transactions to execute at a future time without keeping a device online. The scheduled transaction is registered with the protocol and executed by the network at the specified time.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+
+fn schedule_transfer(
+    recipient: Pubkey,
+    amount: u64,
+    execute_at: i64,
+) -> Result<ScheduledTxId> {
+    // Transaction is signed now, executed later by the protocol
+    // User doesn't need to be online at execution time
+    schedule::create(
+        Transfer { to: recipient, amount },
+        Trigger::Timestamp(execute_at),
+    )
+}</code></pre>
+        </div>
+
+        <h2 id="encrypted-messaging">Encrypted messaging</h2>
+        <p>Programs can send end-to-end encrypted messages to users via their preferred channel — without the user needing to set up encryption keys. All messages are encrypted using IBE before leaving the chain.</p>
+
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Channel</th><th>API</th><th>User requirement</th></tr></thead>
+            <tbody>
+              <tr><td>Wallet / dApp</td><td><code>messaging::send(pubkey, msg)</code></td><td>Rialo wallet or compatible dApp</td></tr>
+              <tr><td>Email</td><td><code>messaging::send_email(addr, msg)</code></td><td>Email address only</td></tr>
+              <tr><td>SMS</td><td><code>messaging::send_sms(number, msg)</code></td><td>Phone number only</td></tr>
+              <tr><td>Push notification</td><td><code>messaging::send_push(device_id, msg)</code></td><td>Device token (from social login)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="zk">ZK-friendly execution</h2>
+        <p>Rialo's RISC-V based REX runtime is designed to be ZK-friendly. Programs can optionally generate zero-knowledge proofs of their execution — proving that a computation was done correctly without revealing the inputs. This enables:</p>
+
+        <ul>
+          <li>Private balance proofs (prove you have enough funds without revealing how much)</li>
+          <li>Credential verification (prove you're over 18 without revealing your birthdate)</li>
+          <li>Private trading (prove a trade was fair without revealing strategy)</li>
+        </ul>
+
+        <div class="callout callout-tip">
+          <div class="callout-icon">✅</div>
+          <div class="callout-body">
+            <div class="callout-title">ZK support is in active development</div>
+            <p>ZK proof generation for arbitrary programs is part of the Rialo roadmap. The RISC-V ISA was chosen specifically to make this feasible at the base layer. Watch the <a href="https://www.rialo.io/blog" target="_blank" class="inline-link">Rialo blog</a> for updates.</p>
+          </div>
+        </div>
+
+        <div class="page-nav">
+          <a href="rwa.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Real World Assets</div>
+          </a>
+          <a href="cdk-reference.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">CDK Reference</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference — Rialo Doc</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body data-base="../">
+<div id="topnav-mount"></div>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <main class="content">
+    <div class="content-inner">
+
+      <div class="page-header">
+        <div class="breadcrumb"><a href="../index.html">Docs</a><span>/</span>API Reference</div>
+        <h1><span class="grad-text">API Reference</span></h1>
+        <p class="lead">Complete reference for the Rialo CDK — every module, function signature, and type available to on-chain programs.</p>
+      </div>
+
+      <div class="toc">
+        <div class="toc-title">On this page</div>
+        <ul>
+          <li><a href="#crates">Crate overview</a></li>
+          <li><a href="#prelude">prelude</a></li>
+          <li><a href="#token">token</a></li>
+          <li><a href="#https">https</a></li>
+          <li><a href="#price-feed">price_feed</a></li>
+          <li><a href="#messaging">messaging</a></li>
+          <li><a href="#random">random</a></li>
+          <li><a href="#schedule">schedule</a></li>
+          <li><a href="#cross-chain">cross_chain</a></li>
+          <li><a href="#scale">scale</a></li>
+          <li><a href="#tee">tee</a></li>
+          <li><a href="#macros">Macros</a></li>
+          <li><a href="#types">Core types</a></li>
+        </ul>
+      </div>
+
+      <h2 id="crates">Crate overview</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Crate</th><th>Version</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td><code>rialo-cdk</code></td><td><span class="badge badge-green">0.9.x</span></td><td>Primary on-chain library. Targets native (tokio) and <code>wasm32</code></td></tr>
+            <tr><td><code>rialo-venus-dsl</code></td><td><span class="badge badge-green">0.9.x</span></td><td>Async DSL macro — AFTER / EVERY / ON / SEND / START</td></tr>
+            <tr><td><code>rialo-sol-lang</code></td><td><span class="badge badge-green">0.9.x</span></td><td>Anchor-compatible eDSL for SVM-layer programs</td></tr>
+            <tr><td><code>rialo-s-sdk</code></td><td><span class="badge badge-green">0.9.x</span></td><td>Client-side Rust SDK (off-chain)</td></tr>
+            <tr><td><code>rialo-s-program</code></td><td><span class="badge badge-green">0.9.x</span></td><td>Low-level SVM program crate</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="prelude">prelude</h2>
+      <p>Import everything you need in one line:</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">use rialo_cdk::prelude::*;
+// Exports: Context, Pubkey, Result, Clock, Duration,
+//          token, https, price_feed, messaging, random,
+//          schedule, cross_chain, require!, emit!, msg!</code></pre>
+      </div>
+
+      <h2 id="token">token</h2>
+      <p>Native token operations — transfer, mint, burn, and balance queries.</p>
+      <div class="api-method">
+        <div class="api-method-header"><span class="method-tag method-fn">fn</span><span class="api-path">token::transfer(from, to, amount)</span></div>
+        <div class="api-method-body"><p>Transfer native tokens between accounts.</p>
+          <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">token::transfer(from: Pubkey, to: Pubkey, amount: u64) -> Result<()></code></pre></div>
+        </div>
+      </div>
+      <div class="api-method">
+        <div class="api-method-header"><span class="method-tag method-fn">fn</span><span class="api-path">token::transfer_stable(to, amount)</span></div>
+        <div class="api-method-body"><p>Transfer protocol stablecoin (USDC-equivalent).</p>
+          <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">token::transfer_stable(to: Pubkey, amount: u64) -> Result<()>
+token::balance(account: Pubkey)                 -> Result<u64>
+token::mint(to: Pubkey, amount: u64)            -> Result<()>
+token::burn(from: Pubkey, amount: u64)          -> Result<()></code></pre></div>
+        </div>
+      </div>
+
+      <h2 id="https">https</h2>
+      <p>Make secure HTTP requests directly from on-chain programs, verified via TEEs. No oracle needed.</p>
+      <div class="api-method">
+        <div class="api-method-header"><span class="method-tag method-get">GET</span><span class="api-path">https::get(url)</span></div>
+        <div class="api-method-body">
+          <div class="code-block"><div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">https::get(url: impl Into<String>)              -> Result<HttpResponse>
+https::post(url: impl Into<String>, body: &T)   -> Result<HttpResponse>
+https::get_with_headers(url, headers)           -> Result<HttpResponse>
+
+// HttpResponse
+response.status()     -> u16
+response.text()       -> String
+response.json::<T>()  -> Result<T>  // auto-deserializes</code></pre></div>
+
+          <div class="callout callout-warning" style="margin-top:0.75rem">
+            <div class="callout-icon">⚠️</div>
+            <div class="callout-body">
+              <div class="callout-title">Determinism</div>
+              <p>HTTPS calls within the same block window are cached — the same URL returns the same response for all validators. Design your data sources accordingly.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 id="price-feed">price_feed</h2>
+      <p>Native on-chain price data. No oracle subscription. Stable costs.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">// Latest price (u64 scaled by 10^6)
+price_feed::get(pair: &str)                          -> Result<u64>
+
+// Price with confidence interval
+price_feed::get_with_confidence(pair: &str)          -> Result<PriceWithConfidence>
+// PriceWithConfidence { price: u64, confidence: u64, expo: i32 }
+
+// Time-weighted average (e.g. 1-hour TWAP)
+price_feed::twap(pair: &str, window: Duration)       -> Result<u64>
+
+// Event trigger conditions — use with ON keyword
+price_feed::below(pair: &str, threshold: u64)        -> EventCondition
+price_feed::above(pair: &str, threshold: u64)        -> EventCondition
+price_feed::change(pair: &str, pct_bps: i64)         -> EventCondition</code></pre>
+      </div>
+      <p>Supported pairs include: <code>BTC/USD</code>, <code>ETH/USD</code>, <code>SOL/USD</code>, <code>USDC/USD</code>, and dozens more. Full list available in the testnet explorer.</p>
+
+      <h2 id="messaging">messaging</h2>
+      <p>Send encrypted notifications to users via wallet, email, SMS, or push — using identity-based encryption. No key exchange setup needed.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">messaging::send(recipient: Pubkey, msg: &str)        -> Result<()>
+messaging::send_email(email: &str, msg: &str)        -> Result<()>
+messaging::send_sms(phone: &str, msg: &str)          -> Result<()>
+messaging::send_push(device_id: &str, msg: &str)     -> Result<()></code></pre>
+      </div>
+
+      <h2 id="random">random</h2>
+      <p>True on-chain randomness — generated in a TEE enclave at execution time. Verifiably unpredictable and unbiasable.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">random::range(min: u64, max: u64)     -> u64       // [min, max)
+random::bytes(len: usize)             -> Vec<u8>
+random::bool_with_prob(p: u8)         -> bool       // p in 0..=100</code></pre>
+      </div>
+
+      <h2 id="schedule">schedule</h2>
+      <p>Create scheduled (future) transactions that execute at a specified time without the user being online.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">schedule::create(
+    instruction: impl Instruction,
+    trigger: Trigger,
+) -> Result<ScheduledTxId>
+
+// Trigger variants
+Trigger::Timestamp(unix_ts: i64)
+Trigger::BlockHeight(height: u64)
+Trigger::Event(condition: EventCondition)
+
+schedule::cancel(id: ScheduledTxId) -> Result<()></code></pre>
+      </div>
+
+      <h2 id="cross-chain">cross_chain</h2>
+      <p>Read state from other chains without bridges or wrappers.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">cross_chain::read(
+    chain: Chain,
+    address: impl Into<[u8; 32]>,
+    method: &str,
+) -> Result<Vec<u8>>
+
+// Chain variants
+Chain::Ethereum
+Chain::Solana
+Chain::Bitcoin  // read-only
+
+cross_chain::send(
+    chain: Chain,
+    instruction: CrossChainInstruction,
+) -> Result<CrossChainTxId></code></pre>
+      </div>
+
+      <h2 id="scale">scale</h2>
+      <p>The SCALE framework for AI agent identity, payments, and task coordination.</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">use rialo_cdk::scale::*;
+
+// Scoped wallet for agents
+ScopedWallet::new()
+    .owner(pubkey)
+    .spend_limit(amount)
+    .spend_period(Duration::days(1))
+    .allowed_programs(vec![program_id])
+    .build() -> Result<ScopedWallet>
+
+// Pay with spend-limit enforcement
+scale::pay(&wallet, to, amount, memo)    -> Result<()>
+scale::escrow(amount)                    -> Result<EscrowId>
+scale::release_escrow(to, amount)        -> Result<()>
+scale::refund_escrow()                   -> Result<()>
+scale::new_task_id()                     -> u64
+scale::discover_service(capability: &str)-> Result<ServiceInfo></code></pre>
+      </div>
+
+      <h2 id="tee">tee</h2>
+      <p>Confidential execution inside Trusted Execution Environments (Intel TDX / AMD SEV-SNP).</p>
+      <div class="code-block">
+        <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">// Mark a function to run inside a TEE enclave
+#[confidential]
+fn sensitive_logic(input: SensitiveData) -> Output {
+    // Intermediate state is not visible to node operators
+    // Inputs and output are committed on-chain with TEE attestation
+}
+
+use rialo_cdk::crypto::ibe;
+ibe::encrypt(Identity::Email("user@example.com"), data) -> Result<Vec<u8>>
+ibe::encrypt(Identity::Pubkey(pk), data)                -> Result<Vec<u8>></code></pre>
+      </div>
+
+      <h2 id="macros">Macros</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Macro</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>require!(cond, err)</code></td><td>Assert condition or return <code>Err(err)</code></td></tr>
+            <tr><td><code>emit!(Event { .. })</code></td><td>Emit a typed on-chain event</td></tr>
+            <tr><td><code>msg!("fmt", ..)</code></td><td>Log to transaction log (debug)</td></tr>
+            <tr><td><code>rialo! { .. }</code></td><td>Main Venus DSL entry point (from <code>rialo-venus-dsl</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="types">Core types</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>Context</code></td><td>Transaction context — <code>.signer</code>, <code>.accounts</code>, <code>.auth_token</code></td></tr>
+            <tr><td><code>Pubkey</code></td><td>32-byte on-chain address</td></tr>
+            <tr><td><code>Result&lt;T&gt;</code></td><td>Rialo result, maps to <code>ProgramResult</code></td></tr>
+            <tr><td><code>Duration</code></td><td><code>Duration::seconds(n)</code>, <code>::minutes(n)</code>, <code>::hours(n)</code>, <code>::days(n)</code></td></tr>
+            <tr><td><code>Clock</code></td><td><code>Clock::get().unix_timestamp</code> — on-chain time</td></tr>
+            <tr><td><code>EventCondition</code></td><td>Composable trigger condition for <code>ON</code> keyword</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="page-nav">
+        <a href="quick-start.html" class="page-nav-item">
+          <div class="page-nav-label">← Previous</div>
+          <div class="page-nav-title">Quick Start Guide</div>
+        </a>
+        <a href="tutorials.html" class="page-nav-item next">
+          <div class="page-nav-label">Next →</div>
+          <div class="page-nav-title">Tutorials</div>
+        </a>
+      </div>
+
+      <footer class="doc-footer">
+        <div class="footer-inner">
+          <div class="footer-links"><a href="https://www.rialo.io" target="_blank">rialo.io</a><a href="faq.html">FAQ</a></div>
+          <span class="footer-copy">© 2026 Subzero Labs</span>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script src="../assets/js/prism.js"></script>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

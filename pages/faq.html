@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — Rialo Doc</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+  <style>
+    .faq-item { border:1px solid var(--rialo-border); border-radius:var(--radius-lg); margin-bottom:.65rem; overflow:hidden; }
+    .faq-q {
+      display:flex; justify-content:space-between; align-items:center; gap:1rem;
+      padding:.9rem 1.2rem; cursor:pointer; font-weight:600; font-size:.9rem;
+      color:var(--text-primary); background:var(--rialo-surface); user-select:none;
+      transition:background var(--transition);
+    }
+    .faq-q:hover { background:var(--rialo-hover); }
+    .faq-chevron { flex-shrink:0; color:var(--text-muted); transition:transform .2s; width:18px; height:18px; }
+    .faq-item.open .faq-chevron { transform:rotate(180deg); }
+    .faq-a {
+      display:none; padding:0 1.2rem 1rem;
+      background:var(--rialo-surface); border-top:1px solid var(--rialo-border-dim);
+    }
+    .faq-a p { margin-top:.8rem; font-size:.88rem; margin-bottom:0; }
+    .faq-a ul { margin-top:.5rem; font-size:.88rem; }
+    .faq-item.open .faq-a { display:block; }
+  </style>
+</head>
+<body data-base="../">
+<div id="topnav-mount"></div>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <main class="content">
+    <div class="content-inner">
+
+      <div class="page-header">
+        <div class="breadcrumb"><a href="../index.html">Docs</a><span>/</span>FAQ</div>
+        <h1><span class="grad-text">Frequently Asked Questions</span></h1>
+        <p class="lead">Common questions about Rialo — the network, development, testnet, and what's coming next.</p>
+      </div>
+
+      <!-- GENERAL -->
+      <h2>General</h2>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          What is Rialo?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Rialo is a <strong>real-world blockchain</strong> built by Subzero Labs. It's a decentralized, high-performance programmable network that natively supports HTTP calls, real-time price feeds, timers, cross-chain data, and privacy features — without external oracles, bridges, or middleware. It calls itself "not a layer one" because it's designed to work more like a programmable operating system than a traditional isolated blockchain.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Who built Rialo?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Rialo is built by <strong>Subzero Labs</strong>, led by <strong>Ade Adepoju</strong> and <strong>Lu Zhang</strong> — both early engineers at Mysten Labs who played foundational roles building the Sui network. The $20M seed round was led by <strong>Pantera Capital</strong>, with Variant, Coinbase Ventures, and Susquehanna also participating.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          How is Rialo different from Solana or Ethereum?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>On Solana or Ethereum, you must assemble a stack of third-party services to build real-world apps: Chainlink/Pyth for price data, Gelato/Clockwork for automation, Wormhole for cross-chain, and various privacy tools. Rialo builds all of these as <strong>native protocol primitives</strong> — same trust assumptions as the chain itself, stable costs, no extra vendors. The Venus DSL also makes async, event-driven programs feel much more like modern application code.</p>
+        </div>
+      </div>
+
+      <!-- DEVELOPMENT -->
+      <h2 style="margin-top:2.25rem">Development</h2>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          What language do I use to write Rialo programs?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p><strong>Rust</strong>. Programs use the <code>rialo-cdk</code> library and the <code>rialo-venus-dsl</code> macro crate. The toolchain is intentionally close to Solana/Anchor — if you've built on Solana, you can port your program with minimal changes using <code>rialo-sol-lang</code> as a drop-in Anchor replacement.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          What is the Venus DSL?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Venus is Rialo's embedded DSL for writing async, event-driven on-chain programs. It adds five keywords:</p>
+          <ul>
+            <li><code>AFTER &lt;duration&gt;</code> — run once after a delay</li>
+            <li><code>EVERY &lt;duration&gt;</code> — run repeatedly on an interval</li>
+            <li><code>ON &lt;condition&gt;</code> — react when an event fires</li>
+            <li><code>SEND &lt;fn&gt;()</code> — non-blocking async message</li>
+            <li><code>START &lt;workflow&gt;</code> — spawn a new workflow instance</li>
+          </ul>
+          <p>These are protocol-level primitives — no keeper bot, no hosted scheduler, no third-party service required.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Do I need an oracle for price data?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>No. Call <code>price_feed::get("BTC/USD")</code> directly in your program. Native feeds cover all major trading pairs with stable, predictable costs. No Chainlink subscription, no Pyth program, no extra trust assumption.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Can I port my existing Solana / Anchor program?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Yes. Replace <code>anchor-lang</code> with <code>rialo-sol-lang</code> in your <code>Cargo.toml</code> and update the deploy target. The API is compatible. After porting, your program gains access to all of Rialo's native primitives immediately.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          How do I run recurring tasks without a bot?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Use <code>EVERY 24h =&gt; my_task();</code> inside your <code>program { }</code> block. The timer is registered with the Rialo protocol at deploy time and executed by the network. Nothing to host. Nothing to monitor.</p>
+        </div>
+      </div>
+
+      <!-- NETWORK -->
+      <h2 style="margin-top:2.25rem">Network &amp; Status</h2>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Is the testnet live?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Yes. The Rialo testnet launched in early 2026. Access is currently gated via the early-access builder program. <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="inline-link">Apply here →</a></p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          When is mainnet?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Mainnet is targeted for 2026. No specific date has been announced publicly. Follow <a href="https://x.com/rialo_io" target="_blank" class="inline-link">@rialo_io</a> and the <a href="https://www.rialo.io/blog" target="_blank" class="inline-link">Rialo blog</a> for updates.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          Is there a token or airdrop?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Rialo has not confirmed a token or airdrop. Any official announcement will come from <a href="https://www.rialo.io" target="_blank" class="inline-link">rialo.io</a>, the <a href="https://discord.gg/rialo" target="_blank" class="inline-link">official Discord</a>, or <a href="https://x.com/rialo_io" target="_blank" class="inline-link">@rialo_io</a> only. Do not trust unofficial sources.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+          What VMs does Rialo support?
+          <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="faq-a">
+          <p>Currently available: <strong>REX (RISC-V)</strong> — Rialo's native runtime, ZK-friendly and TEE-integrated — and <strong>SVM (Solana VM)</strong>, fully Anchor-compatible.</p>
+          <p>Planned: <strong>EVM</strong> (Solidity support) and <strong>MoveVM</strong> (Sui/Aptos developer support).</p>
+        </div>
+      </div>
+
+      <!-- COMMUNITY -->
+      <h2 style="margin-top:2.25rem">Community</h2>
+      <div class="card-grid" style="margin-top:1rem">
+        <a href="https://www.rialo.io" target="_blank" class="card card-glow">
+          <div class="card-icon">🌐</div>
+          <div class="card-title">rialo.io</div>
+          <div class="card-body">Official website — announcements, blog posts, and project updates.</div>
+        </a>
+        <a href="https://discord.gg/rialo" target="_blank" class="card card-glow">
+          <div class="card-icon">💬</div>
+          <div class="card-title">Discord</div>
+          <div class="card-body">Community hub for builders. Ask questions, share projects, follow dev updates.</div>
+        </a>
+        <a href="https://x.com/rialo_io" target="_blank" class="card card-glow">
+          <div class="card-icon">𝕏</div>
+          <div class="card-title">Twitter / X</div>
+          <div class="card-body">Real-time news, testnet updates, and ecosystem announcements.</div>
+        </a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="card card-glow">
+          <div class="card-icon">🚀</div>
+          <div class="card-title">Early Access</div>
+          <div class="card-body">Apply for testnet access and join the early builder program.</div>
+        </a>
+      </div>
+
+      <div class="page-nav">
+        <a href="smart-contracts.html" class="page-nav-item">
+          <div class="page-nav-label">← Previous</div>
+          <div class="page-nav-title">Smart Contracts</div>
+        </a>
+        <a href="../index.html" class="page-nav-item next">
+          <div class="page-nav-label">↑ Back</div>
+          <div class="page-nav-title">Introduction</div>
+        </a>
+      </div>
+
+      <footer class="doc-footer">
+        <div class="footer-inner">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="https://www.rialo.io/posts/introducing-rialo" target="_blank">Introducing Rialo</a>
+            <a href="https://www.rialo.io/blog" target="_blank">Blog</a>
+          </div>
+          <span class="footer-copy">© 2026 Subzero Labs</span>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script src="../assets/js/prism.js"></script>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Venus DSL — Rialo Docs</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body>
+  <header class="topnav">
+    <div class="topnav-left">
+      <button class="sidebar-toggle" aria-label="Toggle sidebar" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+      <a href="../index.html" class="logo"><span class="logo-mark">●</span><span class="logo-text">Rialo Docs</span></a>
+    </div>
+    <div class="topnav-center">
+      <div class="search-bar">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search docs…" id="search-input" /><kbd>⌘K</kbd>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-primary">Apply for Early Access</a>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <span class="nav-section-title">Overview</span>
+          <a href="../index.html" class="nav-link">Introduction</a>
+          <a href="getting-started.html" class="nav-link">Getting Started</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Core Concepts</span>
+          <a href="core-concepts.html" class="nav-link">Architecture</a>
+          <a href="venus-dsl.html" class="nav-link active">Venus DSL</a>
+          <a href="native-primitives.html" class="nav-link">Native Primitives</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Use Cases</span>
+          <a href="scale-agents.html" class="nav-link">SCALE &amp; Agents</a>
+          <a href="rwa.html" class="nav-link">Real World Assets</a>
+          <a href="privacy-security.html" class="nav-link">Privacy &amp; Security</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Reference</span>
+          <a href="cdk-reference.html" class="nav-link">CDK Reference</a>
+          <a href="faq.html" class="nav-link">FAQ</a>
+        </div>
+        <div class="nav-section">
+          <span class="nav-section-title">Community</span>
+          <a href="https://www.rialo.io" target="_blank" class="nav-link nav-external">rialo.io ↗</a>
+          <a href="https://discord.gg/rialo" target="_blank" class="nav-link nav-external">Discord ↗</a>
+          <a href="https://x.com/rialo_io" target="_blank" class="nav-link nav-external">Twitter / X ↗</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <div class="content-inner">
+
+        <div class="page-header">
+          <div class="breadcrumb"><a href="../index.html">Docs</a> › Core Concepts › Venus DSL</div>
+          <h1>Venus DSL</h1>
+          <p class="lead">The domain-specific language that makes async, event-driven on-chain programs feel as natural as modern application code.</p>
+        </div>
+
+        <div class="toc">
+          <div class="toc-title">On this page</div>
+          <ul>
+            <li><a href="#what-is-venus">What is Venus?</a></li>
+            <li><a href="#structure">Program structure</a></li>
+            <li><a href="#after">AFTER — one-shot delay</a></li>
+            <li><a href="#every">EVERY — recurring timer</a></li>
+            <li><a href="#on">ON — event trigger</a></li>
+            <li><a href="#send">SEND — async message</a></li>
+            <li><a href="#start">START — spawn workflow</a></li>
+            <li><a href="#function-types">Function types</a></li>
+            <li><a href="#error-handling">Error handling</a></li>
+            <li><a href="#full-example">Full example</a></li>
+          </ul>
+        </div>
+
+        <h2 id="what-is-venus">What is Venus?</h2>
+        <p>Venus is Rialo's embedded DSL for writing <strong>workflow programs</strong> — on-chain programs that can pause, wait for conditions, react to external data, and resume, all without off-chain infrastructure. It compiles to Solana program calls on Rialo's SVM layer via the <code>rialo-venus-dsl</code> crate.</p>
+
+        <p>The core idea: <strong>async operations that would normally require a keeper bot, oracle, or scheduler are expressed as language keywords.</strong> The protocol handles the scheduling, resource analysis, and account management automatically.</p>
+
+        <div class="callout callout-purple">
+          <div class="callout-icon">💡</div>
+          <div class="callout-body">
+            <div class="callout-title">Design philosophy</div>
+            <p>Venus was designed so that a developer familiar with async JavaScript or Rust's <code>async/await</code> can read and understand an on-chain workflow program without knowing anything about blockchain internals. The DSL handles account allocation, serialization, and scheduling; you write business logic.</p>
+          </div>
+        </div>
+
+        <h2 id="structure">Program structure</h2>
+        <p>Every Venus program is wrapped in a <code>rialo!</code> macro and has two required sections:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    // 1. Persistent on-chain state
+    state {
+        field_name: Type,
+        // ...
+    }
+
+    // 2. Program logic — functions and async workflows
+    program {
+        // regular functions, AFTER, EVERY, ON, SEND, START
+    }
+}</code></pre>
+        </div>
+
+        <p>The <code>state { }</code> block defines a <strong>workflow state</strong> — a persistent data structure that survives across async operations and transaction boundaries. The Venus compiler automatically calculates the required Solana accounts based on your state and async operations.</p>
+
+        <h2 id="after">AFTER — one-shot delay</h2>
+        <p><code>AFTER &lt;duration&gt; =&gt; &lt;function&gt;()</code> schedules a function to run once after a specified delay. This is a protocol-level timer — no cron job, no hosted bot.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state {
+        owner: Pubkey,
+        amount: u64,
+        locked_until: i64,
+    }
+
+    program {
+        // Lock funds for 30 days, then auto-release
+        fn lock_funds(ctx: Context, amount: u64) {
+            state.amount = amount;
+            state.locked_until = Clock::get().unix_timestamp + 30 * 86400;
+            AFTER 30d => release_funds();
+        }
+
+        fn release_funds() {
+            transfer(state.owner, state.amount);
+            state.amount = 0;
+        }
+    }
+}</code></pre>
+        </div>
+
+        <p>Supported duration units: <code>s</code> (seconds), <code>m</code> (minutes), <code>h</code> (hours), <code>d</code> (days).</p>
+
+        <h2 id="every">EVERY — recurring timer</h2>
+        <p><code>EVERY &lt;duration&gt; =&gt; &lt;function&gt;()</code> schedules a function to run repeatedly on a fixed interval. The scheduler is managed by the protocol — once registered, it runs indefinitely until explicitly cancelled.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state {
+        portfolio_value: u64,
+        rebalance_threshold: u64,
+    }
+
+    program {
+        // Check portfolio balance every hour
+        EVERY 1h => check_and_rebalance();
+
+        fn check_and_rebalance() {
+            let current = price_feed::get("ETH/USD") * state.portfolio_value;
+            if current < state.rebalance_threshold {
+                SEND trigger_rebalance();
+            }
+        }
+
+        fn trigger_rebalance() {
+            // rebalance logic here
+            emit!(PortfolioRebalanced { value: state.portfolio_value });
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="on">ON — event trigger</h2>
+        <p><code>ON &lt;event_source&gt; =&gt; &lt;function&gt;()</code> registers a reactive handler that fires when a specific event occurs. Events can come from other on-chain programs, native price feeds, or cross-chain signals.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state {
+        liquidation_price: u64,
+        position_size: u64,
+    }
+
+    program {
+        // React when BTC price drops below liquidation threshold
+        ON price_feed::below("BTC/USD", state.liquidation_price)
+            => liquidate_position();
+
+        // React to an event from another program
+        ON other_program::SettlementComplete
+            => process_settlement(event.amount);
+
+        fn liquidate_position() {
+            // close the position
+            emit!(PositionLiquidated { size: state.position_size });
+            state.position_size = 0;
+        }
+
+        fn process_settlement(amount: u64) {
+            state.position_size += amount;
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="send">SEND — async message</h2>
+        <p><code>SEND &lt;function&gt;()</code> enqueues an async call to another function or program. Unlike a direct function call, <code>SEND</code> is non-blocking — execution continues immediately while the message is delivered asynchronously. This is how you coordinate between workflows without blocking the caller.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state { order_id: u64, status: OrderStatus }
+
+    program {
+        fn place_order(ctx: Context, amount: u64) {
+            state.order_id = generate_id();
+            state.status = OrderStatus::Pending;
+
+            // Non-blocking — caller gets a response immediately
+            SEND notify_user(ctx.signer, state.order_id);
+            SEND execute_trade(amount);
+        }
+
+        fn notify_user(user: Pubkey, order_id: u64) {
+            // Send encrypted notification to user's device
+            messaging::send(user, format!("Order {} placed", order_id));
+        }
+
+        fn execute_trade(amount: u64) {
+            // execute logic
+            state.status = OrderStatus::Filled;
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="start">START — spawn workflow</h2>
+        <p><code>START &lt;workflow&gt;(args)</code> instantiates a new independent workflow instance. Each instance has its own isolated state. This is useful for per-user or per-order workflows that run in parallel without sharing state.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">rialo! {
+    state { active_escrows: u32 }
+
+    program {
+        // Each call to open_escrow spawns a fresh, isolated escrow workflow
+        fn open_escrow(
+            ctx: Context,
+            buyer: Pubkey,
+            seller: Pubkey,
+            amount: u64,
+            deadline: i64,
+        ) {
+            state.active_escrows += 1;
+            START EscrowWorkflow {
+                buyer,
+                seller,
+                amount,
+                deadline,
+            };
+        }
+    }
+}
+
+// Separate workflow definition — each instance is independent
+rialo! {
+    state {
+        buyer: Pubkey,
+        seller: Pubkey,
+        amount: u64,
+        deadline: i64,
+        released: bool,
+    }
+
+    program {
+        fn release(ctx: Context) {
+            require!(ctx.signer == state.buyer, ErrorCode::Unauthorized);
+            transfer(state.seller, state.amount);
+            state.released = true;
+        }
+
+        // Auto-refund buyer if deadline passes without release
+        AFTER state.deadline => auto_refund();
+
+        fn auto_refund() {
+            if !state.released {
+                transfer(state.buyer, state.amount);
+            }
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="function-types">Function types</h2>
+        <p>Venus distinguishes four categories of functions inside a <code>program { }</code> block:</p>
+
+        <div class="stack-table-wrap">
+          <table class="stack-table">
+            <thead><tr><th>Type</th><th>Description</th><th>Called by</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Initiating</strong></td><td>Entry point — starts a workflow or handles a user call</td><td>External transaction</td></tr>
+              <tr><td><strong>Handler</strong></td><td>Responds to an async trigger (AFTER, EVERY, ON, SEND)</td><td>Protocol scheduler / event system</td></tr>
+              <tr><td><strong>Internal</strong></td><td>Helper function, not callable externally</td><td>Other functions in the same program</td></tr>
+              <tr><td><strong>Terminating</strong></td><td>Final function that closes the workflow and releases accounts</td><td>Any, once terminal condition is met</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 id="error-handling">Error handling</h2>
+        <p>Venus programs use <code>require!</code> for guard conditions and define custom error codes with the <code>#[error_code]</code> attribute:</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">#[error_code]
+pub enum ErrorCode {
+    #[msg("You are not authorized to perform this action")]
+    Unauthorized,
+    #[msg("Deadline has already passed")]
+    DeadlinePassed,
+    #[msg("Insufficient funds")]
+    InsufficientFunds,
+}
+
+rialo! {
+    state { owner: Pubkey, balance: u64 }
+
+    program {
+        fn withdraw(ctx: Context, amount: u64) {
+            require!(ctx.signer == state.owner, ErrorCode::Unauthorized);
+            require!(state.balance >= amount, ErrorCode::InsufficientFunds);
+            state.balance -= amount;
+            transfer(ctx.signer, amount);
+        }
+    }
+}</code></pre>
+        </div>
+
+        <h2 id="full-example">Full example — subscription billing</h2>
+        <p>A real-world example: an automated recurring subscription that charges a user monthly, sends a notification, and cancels gracefully if payment fails.</p>
+
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">rust</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+#[error_code]
+pub enum SubscriptionError {
+    #[msg("Payment failed — insufficient balance")]
+    PaymentFailed,
+    #[msg("Subscription already cancelled")]
+    AlreadyCancelled,
+}
+
+rialo! {
+    state {
+        subscriber:  Pubkey,
+        provider:    Pubkey,
+        amount:      u64,
+        active:      bool,
+        paid_cycles: u32,
+    }
+
+    program {
+        // Initiating function — user calls this to start a subscription
+        fn subscribe(ctx: Context, provider: Pubkey, amount: u64) {
+            state.subscriber  = ctx.signer;
+            state.provider    = provider;
+            state.amount      = amount;
+            state.active      = true;
+            state.paid_cycles = 0;
+            EVERY 30d => charge_cycle();
+        }
+
+        // Handler — runs every 30 days
+        fn charge_cycle() {
+            if !state.active { return; }
+
+            let balance = token::balance(state.subscriber);
+            if balance < state.amount {
+                state.active = false;
+                SEND notify_cancellation();
+                return;
+            }
+
+            token::transfer(state.subscriber, state.provider, state.amount);
+            state.paid_cycles += 1;
+            SEND send_receipt(state.paid_cycles);
+        }
+
+        fn send_receipt(cycle: u32) {
+            messaging::send(
+                state.subscriber,
+                format!("Subscription payment #{} processed", cycle),
+            );
+        }
+
+        fn notify_cancellation() {
+            messaging::send(
+                state.subscriber,
+                "Your subscription was cancelled due to insufficient funds.".into(),
+            );
+        }
+
+        // User can cancel any time
+        fn cancel(ctx: Context) {
+            require!(ctx.signer == state.subscriber, SubscriptionError::AlreadyCancelled);
+            state.active = false;
+            emit!(SubscriptionCancelled { subscriber: state.subscriber });
+        }
+    }
+}
+
+#[event]
+pub struct SubscriptionCancelled { pub subscriber: Pubkey }</code></pre>
+        </div>
+
+        <div class="page-nav">
+          <a href="core-concepts.html" class="page-nav-item">
+            <div class="page-nav-label">← Previous</div>
+            <div class="page-nav-title">Architecture</div>
+          </a>
+          <a href="native-primitives.html" class="page-nav-item next">
+            <div class="page-nav-label">Next →</div>
+            <div class="page-nav-title">Native Primitives</div>
+          </a>
+        </div>
+
+        <footer class="doc-footer">
+          <div class="footer-links">
+            <a href="https://www.rialo.io" target="_blank">rialo.io</a>
+            <a href="faq.html">FAQ</a>
+          </div>
+          <p class="footer-copy">© 2026 Subzero Labs. Documentation built on Kiro.</p>
+        </footer>
+
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/prism.js"></script>
+  <script src="../assets/js/main.js"></script>
+</body>
+</html>

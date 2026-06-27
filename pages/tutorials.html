@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorials — Rialo Doc</title>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <link rel="stylesheet" href="../assets/css/prism.css" />
+</head>
+<body data-base="../">
+<div id="topnav-mount"></div>
+<div class="layout">
+  <div id="sidebar-mount"></div>
+  <main class="content">
+    <div class="content-inner">
+
+      <div class="page-header">
+        <div class="breadcrumb"><a href="../index.html">Docs</a><span>/</span>Tutorials</div>
+        <h1><span class="grad-text">Tutorials</span></h1>
+        <p class="lead">Step-by-step guides for building real programs on Rialo — from a price alert bot to a full subscription billing system.</p>
+      </div>
+
+      <div class="toc">
+        <div class="toc-title">On this page</div>
+        <ul>
+          <li><a href="#tut1">1 — Price alert program</a></li>
+          <li><a href="#tut2">2 — Recurring subscription</a></li>
+          <li><a href="#tut3">3 — On-chain lottery</a></li>
+          <li><a href="#tut4">4 — RWA tokenized bond</a></li>
+          <li><a href="#tut5">5 — AI agent with SCALE</a></li>
+        </ul>
+      </div>
+
+      <!-- TUT 1 -->
+      <h2 id="tut1">Tutorial 1 — Price alert program</h2>
+      <p>Build a program that monitors BTC/USD using Rialo's native price feed and sends an encrypted notification when the price crosses a threshold — no oracle, no keeper bot.</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h3>Scaffold the project</h3>
+            <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code class="language-bash">rialo new price-alert && cd price-alert</code></pre></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h3>Write the program</h3>
+            <div class="code-block"><div class="code-header"><span class="code-filename">src/lib.rs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        owner:          Pubkey,
+        alert_above:    u64,   // alert if BTC > this
+        alert_below:    u64,   // alert if BTC < this
+        last_price:     u64,
+        alerts_sent:    u32,
+    }
+
+    program {
+        fn initialize(ctx: Context, above: u64, below: u64) {
+            state.owner       = ctx.signer;
+            state.alert_above = above;
+            state.alert_below = below;
+        }
+
+        // Poll every 5 minutes (no external scheduler)
+        EVERY 5m => check_price();
+
+        // Instant reaction when price crosses thresholds
+        ON price_feed::above("BTC/USD", state.alert_above) => send_high_alert();
+        ON price_feed::below("BTC/USD", state.alert_below) => send_low_alert();
+
+        fn check_price() {
+            state.last_price = price_feed::get("BTC/USD").unwrap();
+        }
+
+        fn send_high_alert() {
+            state.alerts_sent += 1;
+            messaging::send(
+                state.owner,
+                &format!("🚀 BTC crossed ${} — currently ${}", 
+                    state.alert_above, state.last_price),
+            ).unwrap();
+        }
+
+        fn send_low_alert() {
+            state.alerts_sent += 1;
+            messaging::send(
+                state.owner,
+                &format!("📉 BTC dropped below ${} — currently ${}",
+                    state.alert_below, state.last_price),
+            ).unwrap();
+        }
+
+        fn update_thresholds(ctx: Context, above: u64, below: u64) {
+            require!(ctx.signer == state.owner, Error::Unauthorized);
+            state.alert_above = above;
+            state.alert_below = below;
+        }
+    }
+}
+
+#[error_code]
+pub enum Error {
+    #[msg("Only owner can update thresholds")]
+    Unauthorized,
+}</code></pre></div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h3>Deploy and test</h3>
+            <div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+            <pre><code class="language-bash">rialo build
+rialo deploy ./target/deploy/price_alert.so --url https://testnet.rialo.io
+rialo call price-alert initialize \
+  --args '{ "above": 100000, "below": 50000 }' \
+  --url https://testnet.rialo.io</code></pre></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TUT 2 -->
+      <h2 id="tut2">Tutorial 2 — Recurring subscription billing</h2>
+      <p>Build a subscription program that charges a user monthly, sends receipts, and auto-cancels on failed payment — entirely on-chain, no hosted infrastructure.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-filename">src/lib.rs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        subscriber:  Pubkey,
+        provider:    Pubkey,
+        amount_usdc: u64,
+        active:      bool,
+        cycle:       u32,
+    }
+
+    program {
+        fn subscribe(ctx: Context, provider: Pubkey, amount: u64) {
+            state.subscriber  = ctx.signer;
+            state.provider    = provider;
+            state.amount_usdc = amount;
+            state.active      = true;
+            state.cycle       = 0;
+            EVERY 30d => charge_cycle();
+        }
+
+        fn charge_cycle() {
+            if !state.active { return; }
+
+            let bal = token::balance(state.subscriber).unwrap_or(0);
+            if bal < state.amount_usdc {
+                state.active = false;
+                messaging::send(state.subscriber,
+                    "Your subscription was cancelled — insufficient balance.").ok();
+                return;
+            }
+
+            token::transfer_stable(state.provider, state.amount_usdc).unwrap();
+            state.cycle += 1;
+
+            messaging::send(state.subscriber,
+                &format!("Payment #{} of {} USDC processed.", 
+                    state.cycle, state.amount_usdc / 1_000_000)).ok();
+
+            emit!(PaymentProcessed { cycle: state.cycle });
+        }
+
+        fn cancel(ctx: Context) {
+            require!(ctx.signer == state.subscriber, Error::Unauthorized);
+            state.active = false;
+            emit!(SubscriptionCancelled {});
+        }
+    }
+}
+
+#[event] pub struct PaymentProcessed { pub cycle: u32 }
+#[event] pub struct SubscriptionCancelled {}
+#[error_code]
+pub enum Error {
+    #[msg("Only subscriber can cancel")] Unauthorized,
+}</code></pre>
+      </div>
+
+      <!-- TUT 3 -->
+      <h2 id="tut3">Tutorial 3 — On-chain lottery</h2>
+      <p>A provably fair lottery using Rialo's native randomness — no commit-reveal, no VRF service, one line of code for the random draw.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-filename">src/lib.rs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        organizer:    Pubkey,
+        ticket_price: u64,
+        participants: Vec<Pubkey>,
+        winner:       Option<Pubkey>,
+        prize_pool:   u64,
+        draw_time:    i64,
+    }
+
+    program {
+        fn start_lottery(ctx: Context, price: u64, duration_hours: u64) {
+            state.organizer    = ctx.signer;
+            state.ticket_price = price;
+            state.draw_time    = Clock::get().unix_timestamp
+                                 + (duration_hours as i64 * 3600);
+
+            // Auto-draw when time is up
+            AFTER duration_hours h => draw_winner();
+        }
+
+        fn buy_ticket(ctx: Context) {
+            require!(state.winner.is_none(), Error::LotteryEnded);
+            token::transfer(ctx.signer, state.organizer, state.ticket_price).unwrap();
+            state.participants.push(ctx.signer);
+            state.prize_pool += state.ticket_price;
+        }
+
+        fn draw_winner() {
+            require!(!state.participants.is_empty(), Error::NoParticipants);
+
+            // Native randomness — one line, no external service
+            let idx = random::range(0, state.participants.len() as u64) as usize;
+            let winner = state.participants[idx];
+            state.winner = Some(winner);
+
+            // Pay out 95% to winner, 5% to organizer
+            let payout = state.prize_pool * 95 / 100;
+            token::transfer(state.organizer, winner, payout).unwrap();
+
+            messaging::send(winner,
+                &format!("🎉 You won {} tokens!", payout)).ok();
+            emit!(WinnerDrawn { winner, prize: payout });
+        }
+    }
+}
+
+#[event] pub struct WinnerDrawn { pub winner: Pubkey, pub prize: u64 }
+#[error_code]
+pub enum Error {
+    #[msg("Lottery already ended")] LotteryEnded,
+    #[msg("No participants entered")] NoParticipants,
+}</code></pre>
+      </div>
+
+      <!-- TUT 4 -->
+      <h2 id="tut4">Tutorial 4 — Tokenized bond (RWA)</h2>
+      <p>A fully automated fixed-income token. Semi-annual coupon payments fire via Venus DSL timers. No keeper. No cron.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-filename">src/lib.rs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        issuer:      Pubkey,
+        face_value:  u64,
+        coupon_bps:  u64,   // basis points e.g. 500 = 5%
+        holders:     Vec<(Pubkey, u64)>,
+        total_supply:u64,
+        maturity:    i64,
+    }
+
+    program {
+        fn issue(ctx: Context, face: u64, bps: u64, maturity_days: u64) {
+            state.issuer       = ctx.signer;
+            state.face_value   = face;
+            state.coupon_bps   = bps;
+            state.total_supply = face;
+            state.maturity     = Clock::get().unix_timestamp
+                                 + (maturity_days as i64 * 86400);
+
+            EVERY 182d => pay_coupon();
+            AFTER maturity_days d => settle();
+        }
+
+        fn pay_coupon() {
+            let coupon = state.face_value * state.coupon_bps / 10_000 / 2;
+            for (holder, shares) in &state.holders {
+                let payout = coupon * shares / state.total_supply;
+                token::transfer(state.issuer, *holder, payout).ok();
+            }
+            emit!(CouponPaid { amount: coupon });
+        }
+
+        fn settle() {
+            for (holder, shares) in &state.holders {
+                let redemption = state.face_value * shares / state.total_supply;
+                token::transfer(state.issuer, *holder, redemption).ok();
+            }
+            emit!(BondMatured {});
+        }
+    }
+}
+
+#[event] pub struct CouponPaid { pub amount: u64 }
+#[event] pub struct BondMatured {}</code></pre>
+      </div>
+
+      <!-- TUT 5 -->
+      <h2 id="tut5">Tutorial 5 — AI agent with SCALE</h2>
+      <p>Build an autonomous research agent that fetches data, pays service providers, and delivers a daily briefing — entirely on-chain.</p>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">ℹ️</div>
+        <div class="callout-body">
+          <div class="callout-title">SCALE framework</div>
+          <p>SCALE (Secure Coordinated Agent Ledger Environment) provides agent identity, scoped wallets, and task delegation primitives. See the <a href="../index.html" class="inline-link">Introduction</a> for the full overview.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header"><span class="code-filename">src/lib.rs</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre><code class="language-rust">use rialo_cdk::prelude::*;
+use rialo_cdk::scale::*;
+use rialo_venus_dsl::rialo;
+
+rialo! {
+    state {
+        owner:        Pubkey,
+        wallet:       ScopedWallet,
+        topics:       Vec<String>,
+    }
+
+    program {
+        fn initialize(ctx: Context, topics: Vec<String>, daily_budget: u64) {
+            state.owner  = ctx.signer;
+            state.topics = topics;
+            state.wallet = ScopedWallet::new()
+                .owner(ctx.signer)
+                .spend_limit(daily_budget)
+                .spend_period(Duration::days(1))
+                .build().unwrap();
+
+            EVERY 24h => run_briefing();
+        }
+
+        fn run_briefing() {
+            let mut parts: Vec<String> = vec![];
+
+            for topic in &state.topics {
+                // Fetch news via native HTTPS
+                let news = https::get(
+                    format!("https://newsapi.example/v2/search?q={}", topic)
+                ).unwrap();
+
+                // Discover and pay a summarization service
+                if let Ok(svc) = scale::discover_service("text_summarizer") {
+                    scale::pay(&state.wallet, svc.pubkey, svc.price, "summarize").ok();
+                    let summary = https::post(&svc.endpoint, &news.body).unwrap();
+                    parts.push(summary.text());
+                } else {
+                    parts.push(news.text());
+                }
+            }
+
+            messaging::send(state.owner, &parts.join("\n\n---\n\n")).ok();
+            emit!(BriefingDelivered { topics: state.topics.len() as u32 });
+        }
+
+        fn update_topics(ctx: Context, topics: Vec<String>) {
+            require!(ctx.signer == state.owner, Error::Unauthorized);
+            state.topics = topics;
+        }
+    }
+}
+
+#[event] pub struct BriefingDelivered { pub topics: u32 }
+#[error_code]
+pub enum Error {
+    #[msg("Only owner")] Unauthorized,
+}</code></pre>
+      </div>
+
+      <div class="page-nav">
+        <a href="api-reference.html" class="page-nav-item">
+          <div class="page-nav-label">← Previous</div>
+          <div class="page-nav-title">API Reference</div>
+        </a>
+        <a href="smart-contracts.html" class="page-nav-item next">
+          <div class="page-nav-label">Next →</div>
+          <div class="page-nav-title">Smart Contracts</div>
+        </a>
+      </div>
+
+      <footer class="doc-footer">
+        <div class="footer-inner">
+          <div class="footer-links"><a href="https://www.rialo.io" target="_blank">rialo.io</a><a href="faq.html">FAQ</a></div>
+          <span class="footer-copy">© 2026 Subzero Labs</span>
+        </div>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script src="../assets/js/prism.js"></script>
+<script src="../assets/js/nav.js"></script>
+<script src="../assets/js/main.js"></script>
+</body>
+</html>
