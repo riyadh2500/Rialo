@@ -1,4 +1,4 @@
-/* Shared nav + sidebar injected into every page */
+﻿/* Shared nav + sidebar injected into every page */
 (function () {
   const base = document.body.dataset.base || '../';
   const currentPage = window.location.pathname.split('/').pop() || 'index.html';
@@ -26,7 +26,7 @@
   </div>
   <div class="topnav-right">
     <a href="https://docs.google.com/forms/d/e/1FAIpQLSfc87ZbBI0PSa5FAuRnrfJoK_X7xe_bOUI6Gw5clDwoxgCUlA/viewform" target="_blank" class="btn btn-dark">Early Access</a>
-    <a href="https://x.com/rialo_io" target="_blank" class="icon-link" aria-label="X">
+    <a href="https://x.com/RialoHQ" target="_blank" class="icon-link" aria-label="X">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.911-5.622Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
   </div>
@@ -60,8 +60,8 @@
     ]},
     { title: 'Resources', items: [
       { label: 'rialo.io',   href: 'https://www.rialo.io',        external: true },
-      { label: 'Discord',    href: 'https://discord.gg/rialo',    external: true },
-      { label: 'Twitter / X',href: 'https://x.com/rialo_io',      external: true },
+      { label: 'Discord',    href: 'https://discord.com/invite/RialoProtocol',    external: true },
+      { label: 'Twitter / X',href: 'https://x.com/RialoHQ',      external: true },
       { label: 'Blog',       href: 'https://www.rialo.io/blog',   external: true },
     ]},
   ];
